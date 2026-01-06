@@ -33,7 +33,7 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
   if (isLoading) return <div className="h-96 animate-pulse bg-slate-900/50 rounded-[4rem]" />;
 
   return (
-    <div className="glass-card rounded-[4rem] p-12 border-2 border-white/5 relative overflow-hidden group">
+    <div className="cyber-card rounded-[4rem] p-12 relative overflow-hidden group border" style={{ borderColor: 'var(--border-line)' }}>
       <div className="absolute top-0 right-0 p-12 opacity-[0.02] pointer-events-none group-hover:rotate-12 transition-transform">
         <ArrowRightLeft className="w-64 h-64 text-emerald-400" />
       </div>
@@ -123,7 +123,6 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
                    <span className="text-xs font-black text-white font-mono">{flowData.volumeImbalance > 0 ? '+' : ''}{flowData.volumeImbalance.toFixed(0)}%</span>
                 </div>
                 <div className="text-[8px] text-slate-600 font-bold uppercase leading-relaxed">
-                  {/* Fixed 'lang' variable by using 't.lang' */}
                   {t.lang === 'ar' ? 'أوامر السوق البيعية تتجاوز كثافة طلبات الشراء بفرق كبير.' : 'Aggressive sell-side market orders exceeding limit bid density by significant margin.'}
                 </div>
              </div>
@@ -155,7 +154,7 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] font-black text-slate-400 block mb-1">{t.liquidity}</span>
-                    <span className="text-sm font-black text-indigo-400 font-mono">{ob.volume} BTC</span>
+                    <span className="text-sm font-black text-indigo-300 font-mono">{ob.volume} BTC</span>
                   </div>
                   {ob.mitigated && (
                     <div className="absolute -top-2 -right-2 bg-slate-950 border border-white/10 px-3 py-1 rounded-lg text-[8px] font-black text-slate-500 uppercase italic">{t.mitigated}</div>
@@ -196,7 +195,6 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
                </div>
              ))}
              <p className="text-[9px] text-slate-600 font-bold uppercase italic leading-relaxed text-center px-10">
-               {/* Fixed 'lang' variable by using 't.lang' */}
                {t.lang === 'ar' ? '*تمثل فجوات القيمة العادلة مناطق ذات سيولة منخفضة قد يعود لها السعر لملء الطلبات.' : '*Fair Value Gaps represent areas of low liquidity where price is likely to revisit to fill orders.'}
              </p>
           </div>

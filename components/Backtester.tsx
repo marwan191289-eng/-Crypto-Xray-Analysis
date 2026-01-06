@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Play, RotateCcw, TrendingUp, TrendingDown, BarChart, Settings2, Info } from 'lucide-react';
+import { Play, RotateCcw, TrendingUp, TrendingDown, BarChart, Settings2, Info, Activity } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { MarketData, BacktestResult, StrategyType } from '../types';
 
@@ -174,7 +174,7 @@ const Backtester: React.FC<BacktesterProps> = ({ marketData, t }) => {
   };
 
   return (
-    <div className="bg-bg-card border-2 border-white/5 rounded-[4rem] p-12 shadow-3xl relative overflow-hidden group">
+    <div className="cyber-card border-2 rounded-[4rem] p-12 shadow-3xl relative overflow-hidden group hover:scale-[1.005] transition-all" style={{ borderColor: 'var(--border-line)' }}>
       <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 blur-[120px] pointer-events-none transition-all group-hover:bg-accent/10" />
       
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-10 mb-20 relative z-10">
@@ -306,25 +306,29 @@ const Backtester: React.FC<BacktesterProps> = ({ marketData, t }) => {
                   <AreaChart data={result.equityCurve}>
                     <defs>
                       <linearGradient id="equityGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.5}/>
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.6}/>
                         <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} opacity={0.1} />
                     <XAxis dataKey="time" hide />
-                    <YAxis hide domain={['dataMin - 200', 'dataMax + 200']} />
+                    <YAxis hide domain={['dataMin - 500', 'dataMax + 500']} />
                     <Tooltip 
+                      cursor={{ stroke: '#3B82F6', strokeWidth: 2, strokeDasharray: '4 4' }}
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           const val = payload[0].value as number;
                           const profit = ((val - 10000) / 100).toFixed(2);
                           return (
-                            <div className="bg-navy/90 border-2 border-white/10 p-8 rounded-[2.5rem] shadow-3xl backdrop-blur-3xl text-start">
-                              <p className="text-[11px] font-black text-muted uppercase mb-5 tracking-[0.3em] border-b border-white/10 pb-4 italic">{payload[0].payload.time}</p>
-                              <p className="text-4xl font-black font-mono text-white tracking-tighter italic">${val.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                              <p className={`text-[12px] font-black font-mono mt-4 flex items-center gap-3 italic ${parseFloat(profit) >= 0 ? 'text-success' : 'text-danger'}`}>
-                                {parseFloat(profit) >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                                {parseFloat(profit) >= 0 ? '+' : ''}{profit}% {t.delta}
+                            <div className="bg-navy/90 border-2 border-accent/40 p-6 rounded-[2rem] shadow-glow backdrop-blur-3xl text-start">
+                              <div className="flex items-center gap-3 mb-3 border-b border-white/10 pb-3">
+                                <Activity className="w-4 h-4 text-accent" />
+                                <p className="text-[10px] font-black text-white uppercase tracking-widest italic">{payload[0].payload.time}</p>
+                              </div>
+                              <p className="text-3xl font-black font-mono text-white tracking-tighter italic leading-none">${val.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                              <p className={`text-[11px] font-black font-mono mt-3 flex items-center gap-2 italic ${parseFloat(profit) >= 0 ? 'text-success' : 'text-danger'}`}>
+                                {parseFloat(profit) >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                                {parseFloat(profit) >= 0 ? '+' : ''}{profit}%
                               </p>
                             </div>
                           );
@@ -332,7 +336,15 @@ const Backtester: React.FC<BacktesterProps> = ({ marketData, t }) => {
                         return null;
                       }}
                     />
-                    <Area type="monotone" dataKey="balance" stroke="#3B82F6" strokeWidth={6} fill="url(#equityGradient)" animationDuration={3000} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="balance" 
+                      stroke="#3B82F6" 
+                      strokeWidth={6} 
+                      fill="url(#equityGradient)" 
+                      animationDuration={3000}
+                      activeDot={{ r: 8, stroke: '#3B82F6', strokeWidth: 2, fill: '#fff', className: 'animate-pulse' }}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>

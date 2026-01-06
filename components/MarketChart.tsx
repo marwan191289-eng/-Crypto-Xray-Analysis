@@ -8,7 +8,7 @@ interface MarketChartProps {
   t: any;
 }
 
-const MarketChart: React.FC<MarketChartProps> = ({ data, t }) => {
+const MarketChart: React.FC<MarketChartProps> = ({ data, analysis, t }) => {
   const container = useRef<HTMLDivElement>(null);
   const symbol = `BINANCE:${data.symbol}USDT`;
 

@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { 
-  Eye, Globe, Zap, Target, Binary, Activity, LayoutDashboard, 
-  TrendingUp, Ship, Database, Brain, Settings, Cpu, ShieldCheck, Code2, 
-  ExternalLink, Lock, Server, Terminal, Radio, ChevronRight, Clock, MapPin, 
+  Eye, Globe, Zap, Target, Activity, LayoutDashboard, 
+  TrendingUp, Ship, Database, Brain, Settings, Cpu, ShieldCheck, 
+  Terminal, Lock, ChevronRight, Clock, 
   Network, Wifi, Shield, Fingerprint, Award, Layers, ScanText
 } from 'lucide-react';
 import { MarketData, BlockchainStats, AIAnalysis, MLPrediction, WhaleBearMetrics, OnChainMetrics, SocialMetrics } from './types';
@@ -48,7 +48,8 @@ const App: React.FC = () => {
   }, [lang]);
 
   const [selectedSymbol, setSelectedSymbol] = useState('BTC');
-  const [watchedSymbols] = useState(['BTC', 'ETH', 'SOL', 'LTC', 'BNB', 'AAVE', 'ADA', 'BCH', 'XRP']);
+  const watchedSymbols = useMemo(() => ['BTC', 'ETH', 'SOL', 'LTC', 'BNB', 'AAVE', 'ADA', 'BCH', 'XRP'], []);
+  
   const [markets, setMarkets] = useState<MarketData[]>([]);
   const [stats, setStats] = useState<BlockchainStats>({ ethGasPrice: 0, btcHashrate: '645.2 EH/s', totalMarketCap: 2.6, activeAddresses: 1200000 });
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | undefined>();
@@ -61,7 +62,7 @@ const App: React.FC = () => {
   const [socialMetrics, setSocialMetrics] = useState<Record<string, SocialMetrics>>({});
   const [nodeLatency, setNodeLatency] = useState(12);
 
-  const currentMarket = markets.find(m => m.symbol === selectedSymbol);
+  const currentMarket = useMemo(() => markets.find(m => m.symbol === selectedSymbol), [markets, selectedSymbol]);
 
   const updateMarketData = useCallback(async () => {
     const updatedMarkets = await Promise.all(watchedSymbols.map(async (s) => {
@@ -96,7 +97,7 @@ const App: React.FC = () => {
     setNodeLatency(Math.floor(Math.random() * 5) + 10);
   }, [watchedSymbols, selectedSymbol]);
 
-  const handleRefreshAI = async () => {
+  const handleRefreshAI = useCallback(async () => {
     if (!currentMarket) return;
     setIsAnalyzing(true);
     setIsMLRunning(true);
@@ -107,11 +108,13 @@ const App: React.FC = () => {
       ]);
       setAiAnalysis(aiResult);
       setMlPrediction(mlResult);
+    } catch (e) {
+      console.error("AI Analysis failed", e);
     } finally {
       setIsAnalyzing(false);
       setIsMLRunning(false);
     }
-  };
+  }, [currentMarket]);
 
   useEffect(() => {
     updateMarketData();
@@ -119,20 +122,23 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [updateMarketData]);
 
+  // Trigger AI refresh when symbol changes OR when data first arrives
   useEffect(() => {
-    if (currentMarket) handleRefreshAI();
-  }, [selectedSymbol]);
+    if (currentMarket && !isAnalyzing) {
+      handleRefreshAI();
+    }
+  }, [selectedSymbol, !!currentMarket]);
 
-  const scrollToSection = (id: string, ref: React.RefObject<HTMLDivElement>) => {
+  const scrollToSection = useCallback((id: string, ref: React.RefObject<HTMLDivElement | null>) => {
     setActiveTab(id);
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  }, []);
 
-  const handleLinkClick = (name: string) => {
+  const handleLinkClick = useCallback((name: string) => {
     alert(`${t.terminal}: ${t.accessing} ${name}... ${t.secureConn}.`);
-  };
+  }, [t]);
 
-  const sidebarItems = [
+  const sidebarItems = useMemo(() => [
     { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard, ref: sectionRefs.dashboard },
     { id: 'markets', label: t.markets, icon: Globe, ref: sectionRefs.markets },
     { id: 'signals', label: t.signals, icon: TrendingUp, ref: sectionRefs.signals },
@@ -140,12 +146,10 @@ const App: React.FC = () => {
     { id: 'onChain', label: t.onChainIntel, icon: Database, ref: sectionRefs.onChain },
     { id: 'quantum', label: t.quantumIntelligence, icon: Brain, ref: sectionRefs.quantum },
     { id: 'settings', label: t.settings, icon: Settings, ref: sectionRefs.settings },
-  ];
+  ], [t, sectionRefs]);
 
   return (
     <div className="h-screen bg-transparent text-text-bright flex overflow-hidden relative z-10">
-      
-      {/* Enhanced Animated Sidebar */}
       <aside className="w-[300px] bg-bg/70 border-r border-white/5 backdrop-blur-3xl hidden lg:flex flex-col p-8 z-50 flex-shrink-0">
         <div className="mb-14">
           <div className="flex items-center gap-5 mb-4 cursor-pointer group" onClick={() => scrollToSection('dashboard', sectionRefs.dashboard)}>
@@ -179,7 +183,6 @@ const App: React.FC = () => {
           ))}
         </nav>
 
-        {/* Improved Marwan Badge in Sidebar */}
         <div className="mt-10 p-6 marwan-badge-id rounded-[2.5rem] cursor-pointer group reveal-anim" style={{ animationDelay: '0.8s' }} onClick={() => handleLinkClick(t.builtByMarwan)}>
            <div className="flex items-center gap-4 mb-4 relative z-10">
              <div className="p-3 bg-gold/10 rounded-xl border border-gold/20">
@@ -195,10 +198,7 @@ const App: React.FC = () => {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        
-        {/* Advanced Terminal Header */}
         <header className="min-h-[110px] bg-bg/40 backdrop-blur-3xl header-glow-border flex flex-col z-40">
-          {/* Top Info Bar */}
           <div className="bg-black/30 px-12 py-2 flex justify-between items-center border-b border-white/5">
              <div className="flex items-center gap-8">
                 <div className="flex items-center gap-3">
@@ -238,7 +238,6 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-6 flex-shrink-0 flex-wrap justify-end">
-              {/* Specialized Marwan Header ID */}
               <div className="marwan-badge-id px-8 py-3.5 rounded-2xl flex items-center gap-5 shadow-2xl transition-all cursor-pointer group">
                 <div className="relative p-2.5 bg-gold/10 rounded-xl border border-gold/20 shadow-inner">
                   <Fingerprint className="w-6 h-6 text-gold group-hover:scale-125 transition-transform duration-500" />
@@ -258,7 +257,6 @@ const App: React.FC = () => {
                 <button onClick={() => setLang('ar')} className={`px-5 py-2.5 rounded-xl text-[11px] font-black transition-all ${lang === 'ar' ? 'bg-accent text-white shadow-lg' : 'text-muted hover:text-white'}`}>AR</button>
               </div>
 
-              {/* Enhanced Fusion X-Ray Analysis Button */}
               <button 
                 onClick={handleRefreshAI}
                 disabled={isAnalyzing}
@@ -277,7 +275,6 @@ const App: React.FC = () => {
 
         <main className="flex-1 overflow-y-auto custom-scrollbar relative" ref={sectionRefs.dashboard}>
           <div className="p-10 md:p-14 space-y-20 pb-24">
-            {/* Elite Stats View */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
               <MarketCard title={t.totalCap} value={`$${stats.totalMarketCap}T`} change={0.8} />
               <MarketCard title={t.gas} value={stats.ethGasPrice} change={-4.2} />
@@ -400,7 +397,6 @@ const App: React.FC = () => {
                    <span className="text-[12px] font-black text-muted uppercase tracking-[0.6em] italic">© 2025 BULLBEAREYE XRAY. {t.forensicNode}</span>
                 </div>
                 
-                {/* Massive Signature Badge Footnote */}
                 <div onClick={() => handleLinkClick(t.devContact)} className="group relative flex items-center gap-8 marwan-badge-id px-12 py-7 rounded-[3rem] cursor-pointer shadow-5xl border-gold/40">
                    <div className="relative p-3 bg-gold/20 rounded-2xl border border-gold/30 shadow-glow">
                       <Award className="w-10 h-10 text-gold drop-shadow-xl" />

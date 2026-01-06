@@ -92,12 +92,28 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
             <h4 className="text-[14px] font-black text-slate-400 uppercase tracking-[0.4em]">{t.patternSynthesis}</h4>
           </div>
           
-          <div className="mb-6">
+          <div className="mb-6 relative group/tooltip">
             <div className="text-3xl font-black text-white italic tracking-tighter uppercase mb-2">
               {prediction.patternDetected}
             </div>
             <div className="text-2xl font-black text-accent italic tracking-tighter uppercase border-b border-white/5 pb-4" dir="rtl">
               {prediction.patternDetectedAr}
+            </div>
+            {/* Pattern Tooltip */}
+            <div className="absolute left-0 bottom-full mb-6 w-full max-w-[320px] bg-navy/95 border-2 border-accent/30 p-6 rounded-3xl opacity-0 translate-y-4 group-hover/tooltip:opacity-100 group-hover/tooltip:translate-y-0 transition-all duration-500 z-50 shadow-5xl backdrop-blur-3xl">
+              <div className="flex items-center gap-3 mb-4 text-accent">
+                <Info className="w-5 h-5" />
+                <span className="text-[11px] font-black uppercase tracking-widest">{t.lang === 'ar' ? 'تحليل النمط' : 'Pattern Insight'}</span>
+              </div>
+              <p className="text-[12px] text-white font-bold leading-relaxed italic">
+                {t.lang === 'ar' 
+                  ? 'نمط عصبي مكتشف يشير إلى تجميع مؤسسي مخفي خلف مستويات السيولة الحالية.' 
+                  : 'A high-conviction neural sequence indicating institutional accumulation hidden behind current liquidity layers.'}
+              </p>
+              <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2">
+                <Target className="w-3 h-3 text-success" />
+                <span className="text-[9px] text-success font-black uppercase tracking-widest">{t.lang === 'ar' ? 'دقة عالية' : 'High Implication'}</span>
+              </div>
             </div>
           </div>
 

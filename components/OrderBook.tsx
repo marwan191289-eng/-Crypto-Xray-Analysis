@@ -30,11 +30,10 @@ const OrderBook: React.FC<OrderBookProps> = ({ price, symbol, t }) => {
   const prevPriceRef = useRef(price);
   const [priceChanged, setPriceChanged] = useState(false);
 
-  // Monitor price changes for the central display animation
   useEffect(() => {
     if (price !== prevPriceRef.current) {
       setPriceChanged(true);
-      const timer = setTimeout(() => setPriceChanged(false), 300);
+      const timer = setTimeout(() => setPriceChanged(false), 500);
       prevPriceRef.current = price;
       return () => clearTimeout(timer);
     }
@@ -75,8 +74,7 @@ const OrderBook: React.FC<OrderBookProps> = ({ price, symbol, t }) => {
       const amount = Math.max(0.1, amountBase * (1 + wave));
       runningTotal += amount;
       
-      // Determine if this row is "pulsing" based on the wave peak
-      const isUpdating = Math.abs(wave) > 0.45;
+      const isUpdating = Math.abs(wave) > 0.40;
 
       levels.push({ 
         id: `${isAsk ? 'A' : 'B'}-${i}`, 
@@ -102,13 +100,13 @@ const OrderBook: React.FC<OrderBookProps> = ({ price, symbol, t }) => {
   };
 
   return (
-    <div className="neu-card rounded-[2.5rem] p-8 space-y-6 text-start border-white/5">
+    <div className="cyber-card rounded-[2.5rem] p-8 space-y-6 text-start border" style={{ borderColor: 'var(--border-line)' }}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
           <BarChart3 className="w-5 h-5 text-accent" />
           <h3 className="font-black text-text-bright text-sm uppercase tracking-widest">{t.orderBook}</h3>
         </div>
-        <div className="neu-card-inset px-4 py-1.5 rounded-xl border-white/5">
+        <div className="bg-white/5 px-4 py-1.5 rounded-xl border border-white/10 shadow-inner">
           <select 
             className="bg-transparent text-[9px] text-muted focus:outline-none cursor-pointer font-black uppercase tracking-widest"
             value={threshold}
@@ -131,28 +129,29 @@ const OrderBook: React.FC<OrderBookProps> = ({ price, symbol, t }) => {
         {filteredAsks.map((ask) => (
           <div 
             key={ask.id} 
-            className={`grid grid-cols-3 items-center py-1.5 px-3 text-[10px] font-mono relative group rounded-lg transition-all duration-300 ${ask.isUpdating ? 'bg-danger/10' : 'hover:bg-white/5'}`}
+            className={`grid grid-cols-3 items-center py-1.5 px-3 text-[10px] font-mono relative group rounded-lg transition-all duration-300 ${ask.isUpdating ? 'bg-danger/20 scale-[1.02]' : 'hover:bg-white/5'}`}
           >
             <div 
               className={`absolute top-0 bottom-0 bg-danger/10 transition-all duration-500 ease-out ${document.documentElement.dir === 'rtl' ? 'right-0' : 'left-0'}`} 
               style={{ width: `${(ask.amount / maxAmount) * 100}%` }} 
             />
-            <span className="text-danger font-black relative z-10">${getPriceFormatted(ask.price)}</span>
-            <span className={`text-end text-text-bright font-bold relative z-10 transition-transform duration-200 ${ask.isUpdating ? 'scale-105' : ''}`}>
+            <span className={`text-danger font-black relative z-10 transition-transform duration-200 ${ask.isUpdating ? 'scale-110' : ''}`}>${getPriceFormatted(ask.price)}</span>
+            <span className={`text-end text-text-bright font-bold relative z-10 transition-transform duration-200 ${ask.isUpdating ? 'scale-110' : ''}`}>
               {ask.amount.toFixed(2)}
             </span>
             <span className="text-end text-muted font-bold relative z-10 opacity-60">{ask.total.toFixed(2)}</span>
           </div>
         ))}
 
-        <div className="py-6 my-4 neu-card-inset flex justify-between items-center px-6 rounded-[2rem] border-white/5 shadow-inner group cursor-pointer hover:bg-white/10 transition-all">
-          <div className="flex flex-col">
-            <span className={`text-xl font-black text-white font-mono tracking-tighter text-glow-primary transition-all duration-300 transform ${priceChanged ? 'scale-110 text-accent' : 'scale-100'}`}>
+        <div className="py-6 my-4 bg-white/5 flex justify-between items-center px-6 rounded-[2rem] border border-white/10 shadow-inner group cursor-pointer hover:bg-white/10 transition-all overflow-hidden relative">
+          {priceChanged && <div className="absolute inset-0 bg-accent/5 animate-pulse" />}
+          <div className="flex flex-col relative z-10">
+            <span className={`text-xl font-black text-white font-mono tracking-tighter text-glow-primary transition-all duration-500 transform ${priceChanged ? 'scale-125 text-accent' : 'scale-100'}`}>
               ${getPriceFormatted(price)}
             </span>
             <span className="text-[8px] text-muted uppercase font-black tracking-[0.4em] mt-1 opacity-50">{t.markPrice}</span>
           </div>
-          <div className="text-end">
+          <div className="text-end relative z-10">
              <div className="w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_10px_#3b82f6] animate-pulse" />
           </div>
         </div>
@@ -160,14 +159,14 @@ const OrderBook: React.FC<OrderBookProps> = ({ price, symbol, t }) => {
         {filteredBids.map((bid) => (
           <div 
             key={bid.id} 
-            className={`grid grid-cols-3 items-center py-1.5 px-3 text-[10px] font-mono relative group rounded-lg transition-all duration-300 ${bid.isUpdating ? 'bg-success/10' : 'hover:bg-white/5'}`}
+            className={`grid grid-cols-3 items-center py-1.5 px-3 text-[10px] font-mono relative group rounded-lg transition-all duration-300 ${bid.isUpdating ? 'bg-success/20 scale-[1.02]' : 'hover:bg-white/5'}`}
           >
             <div 
               className={`absolute top-0 bottom-0 bg-success/10 transition-all duration-500 ease-out ${document.documentElement.dir === 'rtl' ? 'right-0' : 'left-0'}`} 
               style={{ width: `${(bid.amount / maxAmount) * 100}%` }} 
             />
-            <span className="text-success font-black relative z-10">${getPriceFormatted(bid.price)}</span>
-            <span className={`text-end text-text-bright font-bold relative z-10 transition-transform duration-200 ${bid.isUpdating ? 'scale-105' : ''}`}>
+            <span className={`text-success font-black relative z-10 transition-transform duration-200 ${bid.isUpdating ? 'scale-110' : ''}`}>${getPriceFormatted(bid.price)}</span>
+            <span className={`text-end text-text-bright font-bold relative z-10 transition-transform duration-200 ${bid.isUpdating ? 'scale-110' : ''}`}>
               {bid.amount.toFixed(2)}
             </span>
             <span className="text-end text-muted font-bold relative z-10 opacity-60">{bid.total.toFixed(2)}</span>
@@ -179,7 +178,7 @@ const OrderBook: React.FC<OrderBookProps> = ({ price, symbol, t }) => {
         <div className="flex items-center gap-3 text-muted text-[9px] font-black uppercase tracking-[0.4em] px-1 italic opacity-40">
           <History className="w-4 h-4 text-accent" /> {t.recentActivity}
         </div>
-        <div className="neu-card-inset rounded-2xl p-5 space-y-3.5 min-h-[140px] border-white/5">
+        <div className="bg-white/5 rounded-2xl p-5 space-y-3.5 min-h-[140px] border border-white/10 shadow-inner">
           {recentTrades.map((t_item, i) => (
             <div key={`${t_item.time}-${i}`} className="flex justify-between items-center text-[10px] font-mono animate-[slideIn_0.3s_ease-out] hover:translate-x-1 transition-all">
               <span className={t_item.side === 'buy' ? 'text-success font-black text-glow-bull' : 'text-danger font-black text-glow-bear'}>

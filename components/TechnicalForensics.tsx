@@ -12,10 +12,8 @@ interface TechProps {
 const TechnicalForensics: React.FC<TechProps> = ({ data, isLoading, t }) => {
   const metrics = useMemo((): TechnicalMetrics => {
     const prices = data.history.map(h => h.close);
-    const volumes = data.history.map(h => h.volume);
     const latest = prices[prices.length - 1] || 0;
 
-    // حساب EMA (مؤشر حقيقي)
     const calculateEMA = (p: number[], period: number) => {
       const k = 2 / (period + 1);
       let ema = p[0];
@@ -28,7 +26,6 @@ const TechnicalForensics: React.FC<TechProps> = ({ data, isLoading, t }) => {
     const ema20 = calculateEMA(prices, 20);
     const ema50 = calculateEMA(prices, 50);
 
-    // حساب VWAP (مؤشر حقيقي)
     let totalVP = 0;
     let totalV = 0;
     data.history.slice(-24).forEach(h => {
@@ -173,11 +170,11 @@ const TechnicalForensics: React.FC<TechProps> = ({ data, isLoading, t }) => {
                   <span className={zone.type === 'SUPPLY' ? 'text-rose-400' : 'text-emerald-400'}>{t[zone.type.toLowerCase() + 'Zone'] || zone.type}</span>
                   <span className="text-slate-500">{t.power}: {zone.strength}%</span>
                 </div>
-                <div className={`p-4 rounded-2xl border border-dashed flex justify-between items-center ${zone.type === 'SUPPLY' ? 'bg-rose-500/5 border-rose-500/30' : 'bg-emerald-500/5 border-emerald-500/30'}`}>
-                  <span className="text-xs font-mono font-black text-white">
+                <div className={`p-4 rounded-2xl border border-dashed flex justify-between items-center overflow-hidden bg-gradient-to-r ${zone.type === 'SUPPLY' ? 'from-rose-500/10 to-rose-500/5 border-rose-500/30' : 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/30'}`}>
+                  <span className="text-xs font-mono font-black text-white truncate pr-4">
                     ${zone.priceRange[0].toLocaleString()} — ${zone.priceRange[1].toLocaleString()}
                   </span>
-                  <div className={`w-2 h-2 rounded-full ${zone.type === 'SUPPLY' ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`} />
+                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${zone.type === 'SUPPLY' ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`} />
                 </div>
               </div>
             ))}
