@@ -29,9 +29,10 @@ const OrderBook: React.FC<OrderBookProps> = ({ price, symbol, t }) => {
   const [recentTrades, setRecentTrades] = useState<Trade[]>([]);
   const prevPriceRef = useRef(price);
   const [priceChanged, setPriceChanged] = useState(false);
+  const tradesRef = useRef<Trade[]>([]); // Use ref to avoid closure staleness in loop
 
   useEffect(() => {
-    if (price !== prevPriceRef.current) {
+    if (Math.abs(price - prevPriceRef.current) > 0.00001) {
       setPriceChanged(true);
       const timer = setTimeout(() => setPriceChanged(false), 500);
       prevPriceRef.current = price;
@@ -41,9 +42,12 @@ const OrderBook: React.FC<OrderBookProps> = ({ price, symbol, t }) => {
 
   useEffect(() => {
     let lastTime = 0;
+    let animId: number;
+
     const animate = (time: number) => {
-      if (time - lastTime > 150) {
-        setFrame(f => f + 1);
+      if (time - lastTime > 200) { // Throttled to ~5fps for stability
+        setFrame(f => (f + 1) % 1000); // Prevent infinite growth
+        
         if (Math.random() > 0.85) {
           const side = Math.random() > 0.5 ? 'buy' : 'sell';
           const tradePrice = price * (1 + (Math.random() - 0.5) * 0.0004);
@@ -53,15 +57,19 @@ const OrderBook: React.FC<OrderBookProps> = ({ price, symbol, t }) => {
             time: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
             side
           };
-          setRecentTrades(prev => [newTrade, ...prev].slice(0, 5));
+          
+          const newTrades = [newTrade, ...tradesRef.current].slice(0, 5);
+          tradesRef.current = newTrades;
+          setRecentTrades(newTrades);
         }
         lastTime = time;
       }
-      requestAnimationFrame(animate);
+      animId = requestAnimationFrame(animate);
     };
-    const animId = requestAnimationFrame(animate);
+    
+    animId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animId);
-  }, [price]);
+  }, [price]); // Reduced dependencies
 
   const generateLevels = (basePrice: number, isAsk: boolean) => {
     const levels: OrderEntry[] = [];

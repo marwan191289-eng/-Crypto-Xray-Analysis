@@ -32,6 +32,8 @@ const MarketChart: React.FC<MarketChartProps> = ({ data, analysis, t }) => {
       "save_image": false,
       "calendar": false,
       "hide_volume": false,
+      "backgroundColor": "rgba(1, 2, 4, 1)",
+      "gridLineColor": "rgba(255, 255, 255, 0.03)",
       "support_host": "https://www.tradingview.com"
     });
 
@@ -48,7 +50,7 @@ const MarketChart: React.FC<MarketChartProps> = ({ data, analysis, t }) => {
   }, [symbol]);
 
   return (
-    <div className="w-full h-[600px] relative rounded-3xl overflow-hidden bg-black border border-white/5">
+    <div className="w-full h-[600px] relative rounded-3xl overflow-hidden bg-[#010204] border border-white/5 shadow-2xl">
       <div 
         id="tradingview_widget" 
         ref={container} 

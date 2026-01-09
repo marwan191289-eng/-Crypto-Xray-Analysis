@@ -1,5 +1,5 @@
 {
-  "name": "BullBearEye - TradeXray",
+  "name": "BullBearEye - TradeXray Gen2",
   "description": "Elite institutional-grade AI trading terminal providing forensic data analysis, blockchain netflow tracking, and neural market forecasts.",
   "requestFramePermissions": [
     "geolocation"

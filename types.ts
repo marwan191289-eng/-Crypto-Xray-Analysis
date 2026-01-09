@@ -165,8 +165,11 @@ export interface AIAnalysis {
   reasoningEn: string;
   reasoningAr: string;
   keyLevels: { support: number[]; resistance: number[] };
+  liquidationZones?: { price: number; volume: number; type: 'LONG' | 'SHORT' }[];
   signal: 'STRONG BUY' | 'BUY' | 'WAIT' | 'SELL' | 'STRONG SELL';
+  volatilityIndex?: number;
   timestamp?: string;
+  isFallback?: boolean;
 }
 
 export interface BlockchainStats {
@@ -174,6 +177,8 @@ export interface BlockchainStats {
   btcHashrate: string;
   totalMarketCap: number;
   activeAddresses: number;
+  btcDominance?: number;
+  globalVolume?: number;
   fearGreed?: {
     value: number;
     label: string;

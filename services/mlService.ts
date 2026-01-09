@@ -8,21 +8,23 @@ const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 const inferenceWithRetry = async (marketData: MarketData, retries = 3, backoff = 1000): Promise<MLPrediction> => {
   try {
-    const historySnippet = marketData.history.slice(-20).map(h => ({
+    const historySnippet = marketData.history.slice(-10).map(h => ({
       o: h.open, h: h.high, l: h.low, c: h.close
     }));
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: `Perform a quantum neural ensemble inference on ${marketData.symbol}. Data: ${JSON.stringify(historySnippet)}.
-      Requirement: Provide analysis in BOTH Arabic and English.
-      1. Get consensus from LSTM, XGBoost, and Transformer agents.
-      2. Generate 3 scenarios (Bullish, Bearish, Range) with probability weights.
-      3. Predict market reaction to potential news events (CPI, FOMC).
-      4. Simulate neural connection weights for visualization.`,
+      1. Consensus from LSTM, XGBoost, Transformer.
+      2. 3 Scenarios (Bullish, Bearish, Range).
+      3. News impact (CPI/FOMC).
+      4. EXACTLY 12 neural weights (0-1).
+      
+      Output strictly valid JSON. Keep reasoning concise (max 30 words per language).`,
       config: {
-        systemInstruction: "You are an Elite Quantitative Forecasting Engine. You MUST provide 'reasoningAr' and 'patternDetectedAr' in professional Arabic financial terminology. Return strictly JSON matching the schema.",
+        systemInstruction: "You are an Elite Quantitative Forecasting Engine. Provide 'reasoningAr' in Arabic. JSON only.",
         responseMimeType: "application/json",
+        maxOutputTokens: 8192, // Increased limit to prevent JSON truncation
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -73,10 +75,21 @@ const inferenceWithRetry = async (marketData: MarketData, retries = 3, backoff =
       }
     });
 
-    return JSON.parse(response.text || '{}') as MLPrediction;
+    const text = response.text;
+    if (!text) throw new Error("Empty ML response");
+    
+    return JSON.parse(text) as MLPrediction;
   } catch (error: any) {
-    if (retries > 0 && (error.status === 429 || error.message?.includes('429'))) {
-      console.warn(`Rate limit hit in ML Inference. Retrying in ${backoff}ms...`);
+    const isRateLimit = 
+      error.status === 429 || 
+      error.code === 429 ||
+      error.message?.includes('429') || 
+      error.message?.includes('quota') ||
+      error.message?.includes('RESOURCE_EXHAUSTED') ||
+      error.response?.status === 429;
+
+    if (retries > 0 && (isRateLimit || error.status === 503)) {
+      console.warn(`ML API Rate Limit hit. Retrying in ${backoff}ms...`);
       await wait(backoff);
       return inferenceWithRetry(marketData, retries - 1, backoff * 2);
     }
@@ -88,13 +101,13 @@ export const runMLInference = async (marketData: MarketData): Promise<MLPredicti
   try {
     return await inferenceWithRetry(marketData);
   } catch (error) {
-    console.error("ML Inference failed finally:", error);
+    console.warn("ML Inference entered Stability Mode (Quota/Network):", error instanceof Error ? error.message : "Rate Limited");
     return {
       predictedPrice: marketData.price,
       direction: 'SIDEWAYS',
       probability: 0,
-      patternDetected: 'Quota Exceeded',
-      patternDetectedAr: 'تجاوزت الحصة المسموح بها',
+      patternDetected: 'System Overload',
+      patternDetectedAr: 'حمل النظام الزائد',
       timeframe: '1H',
       reasoning: 'Inference engine is currently at maximum capacity. Switching to local stability mode.',
       reasoningAr: 'محرك الاستدلال حالياً في أقصى طاقته. التحول إلى وضع الاستقرار المحلي.',

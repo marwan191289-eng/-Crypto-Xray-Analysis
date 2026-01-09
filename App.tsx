@@ -22,25 +22,38 @@ import AIScenarioSimulator from './components/AIScenarioSimulator';
 import SystemArchitectureMonitor from './components/SystemArchitectureMonitor';
 import CEXIntel from './components/CEXIntel';
 import OnChainIntel from './components/OnChainIntel';
-import { MarketCard } from './components/MarketUI';
+import MarketOverviewHeader from './components/MarketOverviewHeader'; // Import new header
 import { analyzeMarket } from './services/geminiService';
 import { fetchMarketData, fetchBlockchainStats, fetchHistory, fetchOnChainMetrics, fetchSocialMetrics, fetchWhaleBearMetrics, fetchCEXMetrics } from './services/marketService';
 import { runMLInference } from './services/mlService';
+
+const WATCHED_SYMBOLS = ['BTC', 'ETH', 'SOL', 'LTC', 'BNB', 'AAVE', 'ADA', 'BCH', 'XRP'];
+
+const COIN_LOGOS: Record<string, string> = {
+  BTC: "https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=032",
+  ETH: "https://cryptologos.cc/logos/ethereum-eth-logo.png?v=032",
+  SOL: "https://cryptologos.cc/logos/solana-sol-logo.png?v=032",
+  LTC: "https://cryptologos.cc/logos/litecoin-ltc-logo.png?v=032",
+  BNB: "https://cryptologos.cc/logos/bnb-bnb-logo.png?v=032",
+  AAVE: "https://cryptologos.cc/logos/aave-aave-logo.png?v=032",
+  ADA: "https://cryptologos.cc/logos/cardano-ada-logo.png?v=032",
+  BCH: "https://cryptologos.cc/logos/bitcoin-cash-bch-logo.png?v=032",
+  XRP: "https://cryptologos.cc/logos/xrp-xrp-logo.png?v=032"
+};
 
 const App: React.FC = () => {
   const [lang, setLang] = useState<Language>('en');
   const [activeTab, setActiveTab] = useState('dashboard');
   const t = translations[lang];
 
-  const sectionRefs = {
-    dashboard: useRef<HTMLDivElement>(null),
-    markets: useRef<HTMLDivElement>(null),
-    signals: useRef<HTMLDivElement>(null),
-    whaleBear: useRef<HTMLDivElement>(null),
-    onChain: useRef<HTMLDivElement>(null),
-    quantum: useRef<HTMLDivElement>(null),
-    settings: useRef<HTMLDivElement>(null),
-  };
+  // Stable refs for scrolling
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const marketsRef = useRef<HTMLDivElement>(null);
+  const signalsRef = useRef<HTMLDivElement>(null);
+  const whaleBearRef = useRef<HTMLDivElement>(null);
+  const onChainRef = useRef<HTMLDivElement>(null);
+  const quantumRef = useRef<HTMLDivElement>(null);
+  const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -48,111 +61,134 @@ const App: React.FC = () => {
   }, [lang]);
 
   const [selectedSymbol, setSelectedSymbol] = useState('BTC');
-  const watchedSymbols = useMemo(() => ['BTC', 'ETH', 'SOL', 'LTC', 'BNB', 'AAVE', 'ADA', 'BCH', 'XRP'], []);
-  
   const [markets, setMarkets] = useState<MarketData[]>([]);
   const [stats, setStats] = useState<BlockchainStats>({ ethGasPrice: 0, btcHashrate: '645.2 EH/s', totalMarketCap: 2.6, activeAddresses: 1200000 });
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | undefined>();
   const [mlPrediction, setMlPrediction] = useState<MLPrediction | undefined>();
+  
+  // Data metrics states
   const [cexMetrics, setCexMetrics] = useState<Record<string, any>>({});
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isMLRunning, setIsMLRunning] = useState(false);
   const [whaleBearMetrics, setWhaleBearMetrics] = useState<Record<string, WhaleBearMetrics>>({});
   const [onChainMetrics, setOnChainMetrics] = useState<Record<string, OnChainMetrics>>({});
   const [socialMetrics, setSocialMetrics] = useState<Record<string, SocialMetrics>>({});
+  
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isMLRunning, setIsMLRunning] = useState(false);
   const [nodeLatency, setNodeLatency] = useState(12);
 
   const currentMarket = useMemo(() => markets.find(m => m.symbol === selectedSymbol), [markets, selectedSymbol]);
 
   const updateMarketData = useCallback(async () => {
-    const updatedMarkets = await Promise.all(watchedSymbols.map(async (s) => {
-      const live = await fetchMarketData(s);
-      const history = await fetchHistory(s, 60);
-      return { 
-        symbol: s, 
-        price: live.price || 0, 
-        change24h: live.change24h ?? 0, 
-        high24h: live.high24h ?? 0, 
-        low24h: live.low24h ?? 0, 
-        volume24h: live.volume24h ?? 0, 
-        history 
-      } as MarketData;
-    }));
-    setMarkets(updatedMarkets);
-    
-    const [ocm, wbm, soc, cex] = await Promise.all([
-      fetchOnChainMetrics(selectedSymbol),
-      fetchWhaleBearMetrics(selectedSymbol, updatedMarkets.find(m => m.symbol === selectedSymbol)?.price || 0),
-      fetchSocialMetrics(selectedSymbol),
-      fetchCEXMetrics(selectedSymbol)
-    ]);
-    
-    setOnChainMetrics(prev => ({ ...prev, [selectedSymbol]: ocm }));
-    setWhaleBearMetrics(prev => ({ ...prev, [selectedSymbol]: wbm }));
-    setSocialMetrics(prev => ({ ...prev, [selectedSymbol]: soc }));
-    setCexMetrics(prev => ({ ...prev, [selectedSymbol]: cex }));
+    try {
+      const updatedMarkets = await Promise.all(WATCHED_SYMBOLS.map(async (s) => {
+        const live = await fetchMarketData(s);
+        const history = await fetchHistory(s, 60);
+        return { 
+          symbol: s, 
+          price: live.price || 0, 
+          change24h: live.change24h ?? 0, 
+          high24h: live.high24h ?? 0, 
+          low24h: live.low24h ?? 0, 
+          volume24h: live.volume24h ?? 0, 
+          history 
+        } as MarketData;
+      }));
+      
+      setMarkets(prev => {
+        // Simple optimization to avoid update if deep equal, but for now just set
+        return updatedMarkets;
+      });
 
-    const bcStats = await fetchBlockchainStats();
-    setStats(prev => ({ ...prev, ...bcStats }));
-    setNodeLatency(Math.floor(Math.random() * 5) + 10);
-  }, [watchedSymbols, selectedSymbol]);
+      const currentPrice = updatedMarkets.find(m => m.symbol === selectedSymbol)?.price || 0;
+      
+      const [ocm, wbm, soc, cex, bcStats] = await Promise.all([
+        fetchOnChainMetrics(selectedSymbol),
+        fetchWhaleBearMetrics(selectedSymbol, currentPrice),
+        fetchSocialMetrics(selectedSymbol),
+        fetchCEXMetrics(selectedSymbol),
+        fetchBlockchainStats()
+      ]);
+      
+      setOnChainMetrics(prev => ({ ...prev, [selectedSymbol]: ocm }));
+      setWhaleBearMetrics(prev => ({ ...prev, [selectedSymbol]: wbm }));
+      setSocialMetrics(prev => ({ ...prev, [selectedSymbol]: soc }));
+      setCexMetrics(prev => ({ ...prev, [selectedSymbol]: cex }));
+      setStats(prev => ({ ...prev, ...bcStats }));
+      setNodeLatency(Math.floor(Math.random() * 5) + 10);
+    } catch (e) {
+      console.error("Market data update failed", e);
+    }
+  }, [selectedSymbol]);
 
   const handleRefreshAI = useCallback(async () => {
-    if (!currentMarket) return;
+    if (!currentMarket || isAnalyzing || isMLRunning) return;
+    
     setIsAnalyzing(true);
     setIsMLRunning(true);
+    
     try {
-      const [aiResult, mlResult] = await Promise.all([
-        analyzeMarket(currentMarket),
-        runMLInference(currentMarket)
-      ]);
+      // Execute sequentially to reduce rate limit (429) potential
+      const aiResult = await analyzeMarket(currentMarket);
+      
+      // Slight delay to be gentle on quota
+      await new Promise(r => setTimeout(r, 300));
+      
+      const mlResult = await runMLInference(currentMarket);
+
       setAiAnalysis(aiResult);
       setMlPrediction(mlResult);
     } catch (e) {
-      console.error("AI Analysis failed", e);
+      console.warn("AI Refresh Interrupted (likely rate limit or network)", e);
     } finally {
       setIsAnalyzing(false);
       setIsMLRunning(false);
     }
-  }, [currentMarket]);
+  }, [currentMarket, isAnalyzing, isMLRunning]);
 
+  // Initial and periodic data fetch
   useEffect(() => {
     updateMarketData();
     const interval = setInterval(updateMarketData, 30000);
     return () => clearInterval(interval);
   }, [updateMarketData]);
 
-  // Trigger AI refresh when symbol changes OR when data first arrives
+  // Reset analysis on symbol change
   useEffect(() => {
-    if (currentMarket && !isAnalyzing) {
+    setAiAnalysis(undefined);
+    setMlPrediction(undefined);
+  }, [selectedSymbol]);
+
+  // Trigger AI refresh only when data is available and analysis is missing
+  useEffect(() => {
+    if (currentMarket && !aiAnalysis && !mlPrediction && !isAnalyzing && !isMLRunning) {
       handleRefreshAI();
     }
-  }, [selectedSymbol, !!currentMarket]);
+  }, [currentMarket, aiAnalysis, mlPrediction, isAnalyzing, isMLRunning, handleRefreshAI]);
 
-  const scrollToSection = useCallback((id: string, ref: React.RefObject<HTMLDivElement | null>) => {
+  const scrollToSection = (id: string, ref: React.RefObject<HTMLDivElement | null>) => {
     setActiveTab(id);
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
+  };
 
-  const handleLinkClick = useCallback((name: string) => {
+  const handleLinkClick = (name: string) => {
     alert(`${t.terminal}: ${t.accessing} ${name}... ${t.secureConn}.`);
-  }, [t]);
+  };
 
   const sidebarItems = useMemo(() => [
-    { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard, ref: sectionRefs.dashboard },
-    { id: 'markets', label: t.markets, icon: Globe, ref: sectionRefs.markets },
-    { id: 'signals', label: t.signals, icon: TrendingUp, ref: sectionRefs.signals },
-    { id: 'whaleBear', label: t.whaleBearMatrix, icon: Ship, ref: sectionRefs.whaleBear },
-    { id: 'onChain', label: t.onChainIntel, icon: Database, ref: sectionRefs.onChain },
-    { id: 'quantum', label: t.quantumIntelligence, icon: Brain, ref: sectionRefs.quantum },
-    { id: 'settings', label: t.settings, icon: Settings, ref: sectionRefs.settings },
-  ], [t, sectionRefs]);
+    { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard, ref: dashboardRef },
+    { id: 'markets', label: t.markets, icon: Globe, ref: marketsRef },
+    { id: 'signals', label: t.signals, icon: TrendingUp, ref: signalsRef },
+    { id: 'whaleBear', label: t.whaleBearMatrix, icon: Ship, ref: whaleBearRef },
+    { id: 'onChain', label: t.onChainIntel, icon: Database, ref: onChainRef },
+    { id: 'quantum', label: t.quantumIntelligence, icon: Brain, ref: quantumRef },
+    { id: 'settings', label: t.settings, icon: Settings, ref: settingsRef },
+  ], [t]);
 
   return (
     <div className="h-screen bg-transparent text-text-bright flex overflow-hidden relative z-10">
       <aside className="w-[300px] bg-bg/70 border-r border-white/5 backdrop-blur-3xl hidden lg:flex flex-col p-8 z-50 flex-shrink-0">
         <div className="mb-14">
-          <div className="flex items-center gap-5 mb-4 cursor-pointer group" onClick={() => scrollToSection('dashboard', sectionRefs.dashboard)}>
+          <div className="flex items-center gap-5 mb-4 cursor-pointer group" onClick={() => scrollToSection('dashboard', dashboardRef)}>
             <div className="w-14 h-14 fusion-btn-xray rounded-2xl flex items-center justify-center flex-shrink-0 transition-all group-hover:rotate-12 shadow-glow shadow-accent/20">
               <Eye className="w-7 h-7 text-white" />
               <div className="scanner-beam"></div>
@@ -259,7 +295,7 @@ const App: React.FC = () => {
 
               <button 
                 onClick={handleRefreshAI}
-                disabled={isAnalyzing}
+                disabled={isAnalyzing || isMLRunning}
                 className={`fusion-btn-xray px-10 py-5 rounded-[2.5rem] text-white flex items-center gap-5 disabled:opacity-50 group transition-all shadow-glow shadow-accent/40`}
               >
                 <div className="relative">
@@ -273,26 +309,80 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto custom-scrollbar relative" ref={sectionRefs.dashboard}>
+        <main className="flex-1 overflow-y-auto custom-scrollbar relative" ref={dashboardRef}>
           <div className="p-10 md:p-14 space-y-20 pb-24">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-              <MarketCard title={t.totalCap} value={`$${stats.totalMarketCap}T`} change={0.8} />
-              <MarketCard title={t.gas} value={stats.ethGasPrice} change={-4.2} />
-              <MarketCard title={t.fearGreed} value={`${stats.fearGreed?.value || 50} (${stats.fearGreed?.label})`} change={2.1} />
-              <MarketCard title={t.aiSentimentScore} value={`${aiAnalysis?.score || 50}/100`} change={3.1} />
-            </div>
+            
+            {/* New Market Overview Header Replacing Old Cards */}
+            <MarketOverviewHeader stats={stats} aiAnalysis={aiAnalysis} t={t} />
 
             <div className="flex flex-col gap-24 w-full max-w-screen-2xl mx-auto min-w-0">
-              <div ref={sectionRefs.markets} className="flex flex-col gap-10 w-full reveal-anim" style={{ animationDelay: '0.2s' }}>
-                <div className="cyber-card p-10 rounded-[4rem] text-start border-white/10 shadow-3xl bg-bg/40 backdrop-blur-xl">
-                  <div className="flex items-center gap-6 mb-10 text-muted border-b border-white/5 pb-8 opacity-60">
-                    <Globe className="w-8 h-8 text-accent animate-pulse" />
-                    <span className="text-[14px] font-black uppercase tracking-[0.5em] italic">{t.institutionalAssetSelector}</span>
+              <div ref={marketsRef} className="flex flex-col gap-10 w-full reveal-anim" style={{ animationDelay: '0.2s' }}>
+                <div className="cyber-card p-10 rounded-[4rem] text-start border-white/10 shadow-3xl bg-bg/40 backdrop-blur-xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-10 opacity-5">
+                     <Globe className="w-64 h-64 text-accent" />
                   </div>
-                  <div className="flex flex-wrap gap-5">
-                    {watchedSymbols.map(s => (
-                      <button key={s} onClick={() => setSelectedSymbol(s)} className={`px-10 py-5 rounded-3xl text-[13px] font-black uppercase tracking-[0.3em] border-2 transition-all italic ${selectedSymbol === s ? 'bg-accent border-accent text-white shadow-glow scale-110 z-10' : 'bg-white/5 border-white/10 text-muted hover:text-white hover:bg-white/10'}`}>{s}/USDT</button>
-                    ))}
+
+                  <div className="flex items-center gap-6 mb-10 text-muted border-b border-white/5 pb-8 relative z-10">
+                    <div className="p-4 bg-accent/10 rounded-2xl border border-accent/20">
+                      <Globe className="w-8 h-8 text-accent animate-pulse" />
+                    </div>
+                    <div>
+                      <span className="text-[14px] font-black uppercase tracking-[0.5em] italic text-white block">{t.institutionalAssetSelector}</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mt-2 block">Global Liquidity Nodes</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-10">
+                    {WATCHED_SYMBOLS.map(s => {
+                      const m = markets.find(market => market.symbol === s);
+                      const price = m?.price || 0;
+                      const change = m?.change24h || 0;
+                      const isUp = change >= 0;
+                      
+                      return (
+                        <button 
+                          key={s} 
+                          onClick={() => setSelectedSymbol(s)} 
+                          className={`
+                            relative p-6 rounded-[2.5rem] border-2 transition-all duration-300 group overflow-hidden text-start
+                            ${selectedSymbol === s 
+                              ? 'bg-accent/10 border-accent shadow-[0_0_30px_rgba(59,130,246,0.2)]' 
+                              : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20'
+                            }
+                          `}
+                        >
+                          {/* Active Glow */}
+                          {selectedSymbol === s && <div className="absolute inset-0 bg-accent/5 animate-pulse"></div>}
+
+                          <div className="flex items-center justify-between mb-4 relative z-10">
+                            <div className="flex items-center gap-4">
+                               <div className="w-10 h-10 rounded-full bg-white p-1.5 shadow-lg flex items-center justify-center">
+                                  <img src={COIN_LOGOS[s]} alt={s} className="w-full h-full object-contain" />
+                               </div>
+                               <div>
+                                  <span className="text-[12px] font-black text-white tracking-widest block">{s}</span>
+                                  <span className="text-[9px] font-bold text-slate-500 tracking-wider">USDT</span>
+                               </div>
+                            </div>
+                            <div className={`
+                               px-3 py-1 rounded-lg text-[9px] font-black border backdrop-blur-md
+                               ${isUp ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}
+                            `}>
+                               {isUp ? '+' : ''}{change.toFixed(2)}%
+                            </div>
+                          </div>
+
+                          <div className="relative z-10">
+                             <span className="text-2xl font-black font-mono text-white tracking-tighter block">
+                               ${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                             </span>
+                             <div className="w-full h-1 bg-slate-800 rounded-full mt-4 overflow-hidden">
+                               <div className={`h-full ${isUp ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: `${Math.min(Math.abs(change) * 10, 100)}%` }}></div>
+                             </div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="cyber-card rounded-[4rem] p-8 relative min-h-[750px] w-full shadow-5xl border-white/10">
@@ -300,8 +390,8 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              <div ref={sectionRefs.signals} className="w-full reveal-anim" style={{ animationDelay: '0.4s' }}>
-                <TradeXrayAI analysis={aiAnalysis} isLoading={isAnalyzing} t={t} />
+              <div ref={signalsRef} className="w-full reveal-anim" style={{ animationDelay: '0.4s' }}>
+                <TradeXrayAI analysis={aiAnalysis} isLoading={isAnalyzing} t={t} currentPrice={currentMarket?.price} />
               </div>
 
               <div className="w-full reveal-anim" style={{ animationDelay: '0.5s' }}>
@@ -320,11 +410,11 @@ const App: React.FC = () => {
                 <SocialIntel metrics={socialMetrics[selectedSymbol]} symbol={selectedSymbol} isLoading={!socialMetrics[selectedSymbol]} t={t} />
               </div>
 
-              <div ref={sectionRefs.whaleBear} className="w-full reveal-anim" style={{ animationDelay: '0.9s' }}>
+              <div ref={whaleBearRef} className="w-full reveal-anim" style={{ animationDelay: '0.9s' }}>
                 {currentMarket && <WhaleBearForensics metrics={whaleBearMetrics[selectedSymbol]} whaleTx={onChainMetrics[selectedSymbol]?.whaleTransactions || []} symbol={selectedSymbol} isLoading={!whaleBearMetrics[selectedSymbol]} t={t} />}
               </div>
 
-              <div ref={sectionRefs.onChain} className="w-full reveal-anim" style={{ animationDelay: '1s' }}>
+              <div ref={onChainRef} className="w-full reveal-anim" style={{ animationDelay: '1s' }}>
                 <AIScenarioSimulator prediction={mlPrediction} currentPrice={currentMarket?.price || 0} isLoading={isMLRunning} t={t} />
               </div>
 
@@ -336,7 +426,7 @@ const App: React.FC = () => {
                 {currentMarket && <OnChainIntel metrics={onChainMetrics[selectedSymbol]} symbol={selectedSymbol} isLoading={!onChainMetrics[selectedSymbol]} t={t} />}
               </div>
               
-              <div ref={sectionRefs.quantum} className="w-full reveal-anim" style={{ animationDelay: '1.3s' }}>
+              <div ref={quantumRef} className="w-full reveal-anim" style={{ animationDelay: '1.3s' }}>
                 {currentMarket && <MachineLearningPredictor prediction={mlPrediction} isLoading={isMLRunning} currentPrice={currentMarket.price} t={t} onValidate={handleRefreshAI} />}
               </div>
               
@@ -345,7 +435,7 @@ const App: React.FC = () => {
                  {currentMarket && <DepthChart price={currentMarket.price} t={t} />}
               </div>
 
-              <div ref={sectionRefs.settings} className="w-full reveal-anim" style={{ animationDelay: '1.5s' }}>
+              <div ref={settingsRef} className="w-full reveal-anim" style={{ animationDelay: '1.5s' }}>
                 {currentMarket && <Backtester marketData={currentMarket} t={t} />}
               </div>
             </div>
@@ -354,7 +444,7 @@ const App: React.FC = () => {
           <footer className="footer-horizon pt-32 pb-20 px-16 z-40 overflow-hidden">
              <div className="max-w-screen-2xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-20 mb-32 text-start">
                 <div className="col-span-1 md:col-span-2">
-                   <div className="flex items-center gap-8 mb-10 cursor-pointer group" onClick={() => scrollToSection('dashboard', sectionRefs.dashboard)}>
+                   <div className="flex items-center gap-8 mb-10 cursor-pointer group" onClick={() => scrollToSection('dashboard', dashboardRef)}>
                       <div className="w-20 h-20 fusion-btn-xray rounded-3xl flex items-center justify-center shadow-4xl">
                          <Eye className="w-10 h-10 text-white" />
                          <div className="scanner-beam"></div>

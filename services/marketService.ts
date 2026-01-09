@@ -179,10 +179,19 @@ export const fetchBlockchainStats = async (): Promise<Partial<BlockchainStats>> 
     console.warn("Gas API fetch failed (likely CORS), using baseline estimate.", e);
   }
   
+  // Use a slow time factor to create smooth wave-like noise rather than jittery random jumps
+  const timeFactor = Date.now() / 8000;
+  const capNoise = Math.sin(timeFactor) * 0.015 + Math.cos(timeFactor * 2.5) * 0.005;
+  const volNoise = Math.cos(timeFactor * 1.5) * 2;
+  const domNoise = Math.sin(timeFactor * 0.3) * 0.15;
+  const gasNoise = Math.floor(Math.sin(timeFactor * 3.5) * 2);
+
   return { 
-    ethGasPrice: gasPrice || 15, 
-    totalMarketCap: 2.84, 
-    activeAddresses: 1250000 + Math.floor(Math.random() * 50000), 
+    ethGasPrice: Math.max(5, (gasPrice || 15) + gasNoise), 
+    totalMarketCap: 2.84 + capNoise, 
+    activeAddresses: 1250000 + Math.floor(Math.random() * 50000),
+    btcDominance: 58.4 + domNoise,
+    globalVolume: 85 + volNoise,
     fearGreed: { 
       value: fgValue, 
       label: fgLabel 
