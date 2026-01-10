@@ -36,7 +36,7 @@ export function MarketCard({ title, value, change }: any) {
         </div>
 
         <div className="h-14 w-full opacity-40 group-hover:opacity-100 transition-all duration-700 scale-[0.98] group-hover:scale-100">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minHeight={55} minWidth={0}>
             <AreaChart data={sparkData}>
               <defs>
                 <linearGradient id={`grad-${title}`} x1="0" y1="0" x2="0" y2="1">

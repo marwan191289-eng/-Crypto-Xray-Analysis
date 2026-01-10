@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Zap, Database, Activity, HardDrive, Server, 
@@ -135,7 +136,7 @@ const SystemArchitectureMonitor: React.FC<Props> = ({ t }) => {
 
         {/* Micro Sparkline */}
         <div className="h-16 w-full mb-6 opacity-80 mask-gradient-b">
-           <ResponsiveContainer width="100%" height="100%">
+           <ResponsiveContainer width="100%" height="100%" minHeight={60} minWidth={0}>
              <AreaChart data={node.metrics.history}>
                <defs>
                  <linearGradient id={`grad-${node.id}`} x1="0" y1="0" x2="0" y2="1">

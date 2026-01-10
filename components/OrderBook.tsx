@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { BarChart3, History } from 'lucide-react';
+import { BarChart3, History, ArrowUp, ArrowDown, Minus, Activity, Layers, Disc, Zap } from 'lucide-react';
 
 interface OrderBookProps {
   price: number;
@@ -8,205 +8,255 @@ interface OrderBookProps {
   t: any;
 }
 
-interface OrderEntry {
+interface OrderLevel {
   price: number;
-  amount: number;
-  total: number;
-  id: string;
-  isUpdating?: boolean;
+  size: number;
+  total: number; // Cumulative
+  depth: number; // Percentage for bar width
+  isWhale: boolean;
+  flash: 'green' | 'red' | null;
 }
 
 interface Trade {
+  id: string;
   price: number;
-  amount: number;
-  time: string;
+  size: number;
   side: 'buy' | 'sell';
+  time: string;
 }
 
 const OrderBook: React.FC<OrderBookProps> = ({ price, symbol, t }) => {
-  const [frame, setFrame] = useState(0);
-  const [threshold, setThreshold] = useState(0);
-  const [recentTrades, setRecentTrades] = useState<Trade[]>([]);
-  const prevPriceRef = useRef(price);
-  const [priceChanged, setPriceChanged] = useState(false);
-  const tradesRef = useRef<Trade[]>([]); // Use ref to avoid closure staleness in loop
-
+  const [asks, setAsks] = useState<OrderLevel[]>([]);
+  const [bids, setBids] = useState<OrderLevel[]>([]);
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [spread, setSpread] = useState({ val: 0, pct: 0 });
+  const [lastPrice, setLastPrice] = useState(price);
+  
+  // -- Simulation Engine --
   useEffect(() => {
-    if (Math.abs(price - prevPriceRef.current) > 0.00001) {
-      setPriceChanged(true);
-      const timer = setTimeout(() => setPriceChanged(false), 500);
-      prevPriceRef.current = price;
-      return () => clearTimeout(timer);
-    }
+    // 1. Generate Initial Book
+    const generateBook = () => {
+      const askLevels: OrderLevel[] = [];
+      const bidLevels: OrderLevel[] = [];
+      let cumAsk = 0;
+      let cumBid = 0;
+      
+      const spreadGap = price * 0.0005; // 0.05% spread
+      
+      // Generate Asks (Lowest to Highest)
+      for (let i = 0; i < 15; i++) {
+        const p = price + spreadGap + (price * 0.0003 * i);
+        const s = Math.random() * 5 + (Math.random() > 0.9 ? 50 : 0); // Occasional whale
+        cumAsk += s;
+        askLevels.push({ price: p, size: s, total: cumAsk, depth: 0, isWhale: s > 40, flash: null });
+      }
+
+      // Generate Bids (Highest to Lowest)
+      for (let i = 0; i < 15; i++) {
+        const p = price - spreadGap - (price * 0.0003 * i);
+        const s = Math.random() * 5 + (Math.random() > 0.9 ? 50 : 0); // Occasional whale
+        cumBid += s;
+        bidLevels.push({ price: p, size: s, total: cumBid, depth: 0, isWhale: s > 40, flash: null });
+      }
+
+      // Normalize Depth
+      const maxVol = Math.max(cumAsk, cumBid);
+      askLevels.forEach(l => l.depth = (l.total / maxVol) * 100);
+      bidLevels.forEach(l => l.depth = (l.total / maxVol) * 100);
+
+      // Asks need to be reversed for display (Highest price at top, Best/Lowest Ask at bottom)
+      setAsks(askLevels.reverse());
+      setBids(bidLevels);
+      
+      const bestAsk = askLevels[askLevels.length-1]?.price || price;
+      const bestBid = bidLevels[0]?.price || price;
+      setSpread({ val: bestAsk - bestBid, pct: ((bestAsk - bestBid) / price) * 100 });
+    };
+
+    generateBook();
+
+    // 2. Live Updates Loop
+    const interval = setInterval(() => {
+      // Simulate Price Impact
+      const isUp = Math.random() > 0.5;
+      const tradePrice = price * (1 + (Math.random() - 0.5) * 0.0002);
+      
+      // Add Trade
+      if (Math.random() > 0.3) {
+        const newTrade: Trade = {
+          id: Math.random().toString(36),
+          price: tradePrice,
+          size: Math.random() * 2 + 0.1,
+          side: isUp ? 'buy' : 'sell',
+          time: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        };
+        setTrades(prev => [newTrade, ...prev].slice(0, 15));
+      }
+
+      // Update Book (Simulate liquidity shifting)
+      setAsks(prev => prev.map(level => {
+        const change = Math.random() > 0.7;
+        if (!change) return { ...level, flash: null }; // Clear flash
+        const newSize = Math.max(0.1, level.size + (Math.random() - 0.5) * 5);
+        return { 
+          ...level, 
+          size: newSize, 
+          isWhale: newSize > 40,
+          flash: newSize > level.size ? 'red' : null 
+        };
+      }));
+
+      setBids(prev => prev.map(level => {
+        const change = Math.random() > 0.7;
+        if (!change) return { ...level, flash: null }; // Clear flash
+        const newSize = Math.max(0.1, level.size + (Math.random() - 0.5) * 5);
+        return { 
+          ...level, 
+          size: newSize, 
+          isWhale: newSize > 40,
+          flash: newSize > level.size ? 'green' : null 
+        };
+      }));
+
+    }, 800);
+
+    return () => clearInterval(interval);
   }, [price]);
 
-  useEffect(() => {
-    let lastTime = 0;
-    let animId: number;
-
-    const animate = (time: number) => {
-      if (time - lastTime > 200) { // Throttled to ~5fps for stability
-        setFrame(f => (f + 1) % 1000); // Prevent infinite growth
-        
-        if (Math.random() > 0.85) {
-          const side = Math.random() > 0.5 ? 'buy' : 'sell';
-          const tradePrice = price * (1 + (Math.random() - 0.5) * 0.0004);
-          const newTrade: Trade = {
-            price: tradePrice,
-            amount: Math.random() * 5 + 0.1,
-            time: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-            side
-          };
-          
-          const newTrades = [newTrade, ...tradesRef.current].slice(0, 5);
-          tradesRef.current = newTrades;
-          setRecentTrades(newTrades);
-        }
-        lastTime = time;
-      }
-      animId = requestAnimationFrame(animate);
-    };
-    
-    animId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animId);
-  }, [price]); // Reduced dependencies
-
-  const generateLevels = (basePrice: number, isAsk: boolean) => {
-    const levels: OrderEntry[] = [];
-    let runningTotal = 0;
-    for (let i = 1; i <= 8; i++) {
-      const step = basePrice * 0.0004 * i;
-      const p = isAsk ? basePrice + step : basePrice - step;
-      const amountBase = 2 + (Math.random() * 2);
-      const wave = Math.sin((frame * 0.1) + (i * 0.8)) * 0.5;
-      const amount = Math.max(0.1, amountBase * (1 + wave));
-      runningTotal += amount;
-      
-      const isUpdating = Math.abs(wave) > 0.40;
-
-      levels.push({ 
-        id: `${isAsk ? 'A' : 'B'}-${i}`, 
-        price: p, 
-        amount, 
-        total: runningTotal,
-        isUpdating 
-      });
-    }
-    return isAsk ? levels.reverse() : levels;
-  };
-
-  const allAsks = useMemo(() => generateLevels(price, true), [price, frame]);
-  const allBids = useMemo(() => generateLevels(price, false), [price, frame]);
-  const filteredAsks = useMemo(() => allAsks.filter(a => a.amount >= threshold), [allAsks, threshold]);
-  const filteredBids = useMemo(() => allBids.filter(b => b.amount >= threshold), [allBids, threshold]);
-  const maxAmount = useMemo(() => Math.max(...allAsks.map(a => a.amount), ...allBids.map(b => b.amount), 1), [allAsks, allBids]);
-
-  const getPriceFormatted = (p: number) => {
-    if (p < 0.01) return p.toFixed(8);
-    if (p < 1) return p.toFixed(4);
-    return p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
-
   return (
-    <div className="cyber-card rounded-[2.5rem] p-8 space-y-6 text-start border" style={{ borderColor: 'var(--border-line)' }}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-3">
-          <BarChart3 className="w-5 h-5 text-accent" />
-          <h3 className="font-black text-text-bright text-sm uppercase tracking-widest">{t.orderBook}</h3>
-        </div>
-        <div className="bg-white/5 px-4 py-1.5 rounded-xl border border-white/10 shadow-inner">
-          <select 
-            className="bg-transparent text-[9px] text-muted focus:outline-none cursor-pointer font-black uppercase tracking-widest"
-            value={threshold}
-            onChange={(e) => setThreshold(parseFloat(e.target.value))}
-          >
-            <option value="0">{t.lang === 'ar' ? 'الكل' : 'ALL'}</option>
-            <option value="2">{t.lang === 'ar' ? '> ٢' : '> 2'} {symbol}</option>
-            <option value="4">{t.lang === 'ar' ? '> ٤' : '> 4'} {symbol}</option>
-          </select>
-        </div>
+    <div className="cyber-card rounded-[2.5rem] p-8 border border-white/5 h-[700px] flex flex-col relative overflow-hidden group shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+      {/* Neon Background Ambience */}
+      <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:rotate-12 transition-transform duration-1000">
+        <Layers className="w-64 h-64 text-indigo-400" />
       </div>
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 pointer-events-none mix-blend-overlay"></div>
 
-      <div className="space-y-1">
-        <div className="grid grid-cols-3 text-[9px] text-muted font-black uppercase mb-4 px-2 tracking-widest opacity-40">
-          <span>{t.price}</span>
-          <span className="text-end">{t.size}</span>
-          <span className="text-end">{t.sum}</span>
-        </div>
-
-        {filteredAsks.map((ask) => (
-          <div 
-            key={ask.id} 
-            className={`grid grid-cols-3 items-center py-1.5 px-3 text-[10px] font-mono relative group rounded-lg transition-all duration-300 ${ask.isUpdating ? 'bg-danger/20 scale-[1.02]' : 'hover:bg-white/5'}`}
-          >
-            <div 
-              className={`absolute top-0 bottom-0 bg-danger/10 transition-all duration-500 ease-out ${document.documentElement.dir === 'rtl' ? 'right-0' : 'left-0'}`} 
-              style={{ width: `${(ask.amount / maxAmount) * 100}%` }} 
-            />
-            <span className={`text-danger font-black relative z-10 transition-transform duration-200 ${ask.isUpdating ? 'scale-110' : ''}`}>${getPriceFormatted(ask.price)}</span>
-            <span className={`text-end text-text-bright font-bold relative z-10 transition-transform duration-200 ${ask.isUpdating ? 'scale-110' : ''}`}>
-              {ask.amount.toFixed(2)}
-            </span>
-            <span className="text-end text-muted font-bold relative z-10 opacity-60">{ask.total.toFixed(2)}</span>
-          </div>
-        ))}
-
-        <div className="py-6 my-4 bg-white/5 flex justify-between items-center px-6 rounded-[2rem] border border-white/10 shadow-inner group cursor-pointer hover:bg-white/10 transition-all overflow-hidden relative">
-          {priceChanged && <div className="absolute inset-0 bg-accent/5 animate-pulse" />}
-          <div className="flex flex-col relative z-10">
-            <span className={`text-xl font-black text-white font-mono tracking-tighter text-glow-primary transition-all duration-500 transform ${priceChanged ? 'scale-125 text-accent' : 'scale-100'}`}>
-              ${getPriceFormatted(price)}
-            </span>
-            <span className="text-[8px] text-muted uppercase font-black tracking-[0.4em] mt-1 opacity-50">{t.markPrice}</span>
-          </div>
-          <div className="text-end relative z-10">
-             <div className="w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_10px_#3b82f6] animate-pulse" />
-          </div>
-        </div>
-
-        {filteredBids.map((bid) => (
-          <div 
-            key={bid.id} 
-            className={`grid grid-cols-3 items-center py-1.5 px-3 text-[10px] font-mono relative group rounded-lg transition-all duration-300 ${bid.isUpdating ? 'bg-success/20 scale-[1.02]' : 'hover:bg-white/5'}`}
-          >
-            <div 
-              className={`absolute top-0 bottom-0 bg-success/10 transition-all duration-500 ease-out ${document.documentElement.dir === 'rtl' ? 'right-0' : 'left-0'}`} 
-              style={{ width: `${(bid.amount / maxAmount) * 100}%` }} 
-            />
-            <span className={`text-success font-black relative z-10 transition-transform duration-200 ${bid.isUpdating ? 'scale-110' : ''}`}>${getPriceFormatted(bid.price)}</span>
-            <span className={`text-end text-text-bright font-bold relative z-10 transition-transform duration-200 ${bid.isUpdating ? 'scale-110' : ''}`}>
-              {bid.amount.toFixed(2)}
-            </span>
-            <span className="text-end text-muted font-bold relative z-10 opacity-60">{bid.total.toFixed(2)}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="space-y-5 pt-6 border-t border-white/5">
-        <div className="flex items-center gap-3 text-muted text-[9px] font-black uppercase tracking-[0.4em] px-1 italic opacity-40">
-          <History className="w-4 h-4 text-accent" /> {t.recentActivity}
-        </div>
-        <div className="bg-white/5 rounded-2xl p-5 space-y-3.5 min-h-[140px] border border-white/10 shadow-inner">
-          {recentTrades.map((t_item, i) => (
-            <div key={`${t_item.time}-${i}`} className="flex justify-between items-center text-[10px] font-mono animate-[slideIn_0.3s_ease-out] hover:translate-x-1 transition-all">
-              <span className={t_item.side === 'buy' ? 'text-success font-black text-glow-bull' : 'text-danger font-black text-glow-bear'}>
-                ${getPriceFormatted(t_item.price)}
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6 relative z-10">
+        <div className="flex items-center gap-4">
+           <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+              <BarChart3 className="w-5 h-5 text-indigo-400 animate-pulse" />
+           </div>
+           <div>
+              <h3 className="text-[12px] font-black text-white uppercase tracking-[0.2em] drop-shadow-md">{t.orderBook}</h3>
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                 <span className="relative flex h-2 w-2">
+                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                 </span>
+                 L2 Data Stream
               </span>
-              <div className="flex gap-6">
-                <span className="text-white font-bold">{t_item.amount.toFixed(2)}</span>
-                <span className="text-muted opacity-40">{t_item.time.split(':').slice(1).join(':')}</span>
-              </div>
-            </div>
-          ))}
+           </div>
+        </div>
+        
+        {/* Stats */}
+        <div className="flex gap-4">
+           <div className="text-right">
+              <span className="text-[8px] font-bold text-slate-500 uppercase block tracking-widest">24h Vol</span>
+              <span className="text-[10px] font-mono font-black text-white drop-shadow-sm">{symbol === 'BTC' ? '42.5K' : '1.2M'}</span>
+           </div>
         </div>
       </div>
 
-      <style>{`
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateY(-5px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      {/* Column Headers */}
+      <div className="grid grid-cols-3 text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 px-3 opacity-80">
+         <span>Price (USDT)</span>
+         <span className="text-right">Amount ({symbol})</span>
+         <span className="text-right">Total</span>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-h-0 relative z-10">
+         
+         {/* ASKS (Sells) - Red */}
+         <div className="flex-1 flex flex-col justify-end overflow-hidden gap-0.5 pb-2">
+            {asks.slice(-12).map((ask, i) => (
+               <div key={i} className={`relative grid grid-cols-3 text-[10px] font-mono py-1 px-3 hover:bg-rose-500/10 transition-colors cursor-crosshair group/row rounded-sm ${ask.flash === 'red' ? 'bg-rose-500/20' : ''}`}>
+                  {/* Depth Bar */}
+                  <div 
+                    className="absolute top-0 bottom-0 right-0 bg-gradient-to-l from-rose-500/20 to-transparent transition-all duration-300" 
+                    style={{ width: `${ask.depth}%` }}
+                  ></div>
+                  
+                  {/* Data */}
+                  <span className={`relative z-10 font-bold ${ask.flash === 'red' ? 'text-white' : 'text-rose-400'} group-hover/row:text-white transition-colors`}>
+                     {ask.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                  <span className={`relative z-10 text-right ${ask.isWhale ? 'text-amber-300 font-black drop-shadow-[0_0_5px_rgba(252,211,77,0.5)]' : 'text-slate-300'}`}>
+                     {ask.size.toFixed(3)} {ask.isWhale && '🐋'}
+                  </span>
+                  <span className="relative z-10 text-right text-slate-500 group-hover/row:text-slate-300">
+                     {ask.total.toFixed(2)}
+                  </span>
+               </div>
+            ))}
+         </div>
+
+         {/* NEON SPREAD INDICATOR */}
+         <div className="my-2 py-4 bg-slate-900/80 backdrop-blur-xl border-y border-indigo-500/20 flex justify-between items-center px-6 relative overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)] z-20 group/spread">
+            <div className="absolute inset-0 bg-indigo-500/5 animate-pulse"></div>
+            
+            <div className="flex flex-col relative z-10">
+               <span className={`text-2xl font-black font-mono tracking-tighter flex items-center gap-3 drop-shadow-md transition-colors duration-300 ${price >= lastPrice ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <div className={`p-1 rounded-full ${price >= lastPrice ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                     {price >= lastPrice ? <ArrowUp size={14} strokeWidth={3} /> : <ArrowDown size={14} strokeWidth={3} />}
+                  </div>
+               </span>
+               <span className="text-[9px] font-bold text-indigo-300 uppercase tracking-[0.2em] flex items-center gap-1.5 opacity-80">
+                  <Zap size={10} className="text-amber-400" /> Mark Price
+               </span>
+            </div>
+            
+            <div className="text-right relative z-10">
+               <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Spread</span>
+               <span className="text-xs font-mono font-black text-white bg-slate-800 px-2 py-1 rounded border border-white/10 group-hover/spread:border-indigo-500/50 transition-colors">
+                  {spread.pct.toFixed(3)}%
+               </span>
+            </div>
+         </div>
+
+         {/* BIDS (Buys) - Green */}
+         <div className="flex-1 flex flex-col justify-start overflow-hidden gap-0.5 pt-2">
+            {bids.slice(0, 12).map((bid, i) => (
+               <div key={i} className={`relative grid grid-cols-3 text-[10px] font-mono py-1 px-3 hover:bg-emerald-500/10 transition-colors cursor-crosshair group/row rounded-sm ${bid.flash === 'green' ? 'bg-emerald-500/20' : ''}`}>
+                  {/* Depth Bar */}
+                  <div 
+                    className="absolute top-0 bottom-0 right-0 bg-gradient-to-l from-emerald-500/20 to-transparent transition-all duration-300" 
+                    style={{ width: `${bid.depth}%` }}
+                  ></div>
+                  
+                  {/* Data */}
+                  <span className={`relative z-10 font-bold ${bid.flash === 'green' ? 'text-white' : 'text-emerald-400'} group-hover/row:text-white transition-colors`}>
+                     {bid.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                  <span className={`relative z-10 text-right ${bid.isWhale ? 'text-amber-300 font-black drop-shadow-[0_0_5px_rgba(252,211,77,0.5)]' : 'text-slate-300'}`}>
+                     {bid.size.toFixed(3)} {bid.isWhale && '🐋'}
+                  </span>
+                  <span className="relative z-10 text-right text-slate-500 group-hover/row:text-slate-300">
+                     {bid.total.toFixed(2)}
+                  </span>
+               </div>
+            ))}
+         </div>
+
+      </div>
+
+      {/* Recent Trades Footer - Styled as Tape */}
+      <div className="mt-4 pt-4 border-t border-white/5 relative bg-black/20 -mx-8 px-8 pb-4 -mb-8">
+         <div className="flex items-center gap-2 mb-3 text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">
+            <History className="w-3 h-3 text-slate-400" /> Recent Executions
+         </div>
+         <div className="space-y-1 h-24 overflow-hidden relative mask-gradient-b">
+            {trades.map((t) => (
+               <div key={t.id} className="grid grid-cols-3 text-[9px] font-mono animate-[slideIn_0.2s_ease-out] hover:bg-white/5 px-2 py-0.5 rounded">
+                  <span className={t.side === 'buy' ? 'text-emerald-400' : 'text-rose-400'}>{t.price.toLocaleString()}</span>
+                  <span className="text-right text-slate-300">{t.size.toFixed(4)}</span>
+                  <span className="text-right text-slate-600">{t.time}</span>
+               </div>
+            ))}
+         </div>
+      </div>
     </div>
   );
 };

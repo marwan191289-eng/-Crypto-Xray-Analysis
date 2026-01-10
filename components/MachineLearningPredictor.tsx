@@ -1,7 +1,12 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MLPrediction } from '../types';
-import { Cpu, Zap, Binary, ChevronRight, Share2, ShieldCheck, Activity, Target, Network, Info, TrendingUp, TrendingDown, Languages } from 'lucide-react';
+import { 
+  Cpu, Zap, Binary, ChevronRight, Share2, ShieldCheck, Activity, 
+  Target, Network, Info, TrendingUp, TrendingDown, Languages, 
+  GitMerge, Layers, Brain, Terminal, ScanFace
+} from 'lucide-react';
+import { AreaChart, Area, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ReferenceLine } from 'recharts';
 
 interface MLProps {
   prediction?: MLPrediction;
@@ -11,19 +16,98 @@ interface MLProps {
   onValidate?: () => void;
 }
 
+// --- Sub-Component: Neural Activation Grid ---
+const NeuralGrid = () => {
+  const [cells, setCells] = useState(Array(48).fill(0));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCells(prev => prev.map(() => Math.random() > 0.7 ? Math.random() : 0));
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="grid grid-cols-12 gap-1 h-12 w-full opacity-60">
+      {cells.map((val, i) => (
+        <div 
+          key={i} 
+          className="rounded-[1px] transition-all duration-300"
+          style={{ 
+            backgroundColor: val > 0 ? `rgba(99, 102, 241, ${val})` : 'rgba(30, 41, 59, 0.3)',
+            boxShadow: val > 0.8 ? '0 0 4px #6366f1' : 'none',
+            transform: val > 0.9 ? 'scale(1.2)' : 'scale(1)'
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// --- Sub-Component: Confidence Heartbeat ---
+const ConfidenceHeartbeat = ({ baseConfidence }: { baseConfidence: number }) => {
+  const [data, setData] = useState(Array(30).fill({ val: baseConfidence }));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setData(prev => {
+        const noise = (Math.random() - 0.5) * 4;
+        const newVal = Math.min(100, Math.max(0, baseConfidence + noise));
+        return [...prev.slice(1), { val: newVal }];
+      });
+    }, 100);
+    return () => clearInterval(interval);
+  }, [baseConfidence]);
+
+  return (
+    <div className="h-10 w-32">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data}>
+          <defs>
+            <linearGradient id="confGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity={0.4}/>
+              <stop offset="100%" stopColor="#10b981" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <Area 
+            type="monotone" 
+            dataKey="val" 
+            stroke="#10b981" 
+            strokeWidth={2} 
+            fill="url(#confGrad)" 
+            isAnimationActive={false} 
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
 const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, currentPrice, t, onValidate }) => {
+  // Live Simulation State
+  const [inferenceTime, setInferenceTime] = useState(12);
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setInferenceTime(prev => Math.max(8, Math.min(25, prev + (Math.random() - 0.5) * 5)));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   if (isLoading && !prediction) {
     return (
-      <div className="bg-slate-900/80 border-2 border-slate-800 rounded-[3.5rem] p-14 relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 left-0 w-full h-2 bg-indigo-500/10">
-          <div className="h-full bg-indigo-500 w-1/4 animate-[loading_2s_infinite] shadow-[0_0_20px_#6366f1]"></div>
-        </div>
-        <div className="flex flex-col items-center justify-center py-28 space-y-10">
-          <div className="relative">
-             <Binary className="w-20 h-20 text-indigo-500 animate-pulse" />
-             <div className="absolute inset-0 bg-indigo-500/30 blur-2xl rounded-full animate-ping"></div>
-          </div>
-          <p className="text-[14px] font-black text-slate-400 uppercase tracking-[0.8em] animate-pulse">{t.neuralWeights}</p>
+      <div className="bg-slate-900/80 border-2 border-slate-800 rounded-[3.5rem] p-14 relative overflow-hidden shadow-2xl min-h-[600px] flex flex-col items-center justify-center">
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
+        <div className="relative z-10 flex flex-col items-center gap-8">
+           <div className="w-24 h-24 relative">
+              <div className="absolute inset-0 border-4 border-indigo-500/20 rounded-full animate-[spin_3s_linear_infinite]"></div>
+              <div className="absolute inset-0 border-4 border-t-indigo-500 rounded-full animate-[spin_1s_linear_infinite]"></div>
+              <Brain className="absolute inset-0 m-auto w-10 h-10 text-indigo-400 animate-pulse" />
+           </div>
+           <div className="flex flex-col items-center gap-2">
+              <span className="text-xl font-black text-white uppercase tracking-widest animate-pulse">Initializing Tensor Cores</span>
+              <span className="text-xs font-mono text-indigo-400">Loading Weights: 8.4B Parameters</span>
+           </div>
         </div>
       </div>
     );
@@ -33,126 +117,199 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
 
   const isUp = prediction.direction === 'UP';
   const isDown = prediction.direction === 'DOWN';
+  const directionColor = isUp ? 'text-emerald-400' : isDown ? 'text-rose-400' : 'text-amber-400';
+  const directionBg = isUp ? 'bg-emerald-500/10' : isDown ? 'bg-rose-500/10' : 'bg-amber-500/10';
+  const directionBorder = isUp ? 'border-emerald-500/30' : isDown ? 'border-rose-500/30' : 'border-amber-500/30';
+
+  // Ensemble Data Preparation
+  const ensembleData = [
+    { name: 'LSTM (Time)', vote: prediction.ensembleVotes.lstm, score: prediction.ensembleVotes.lstm === 'BUY' ? 85 : prediction.ensembleVotes.lstm === 'SELL' ? 15 : 50 },
+    { name: 'XGB (Pattern)', vote: prediction.ensembleVotes.xgboost, score: prediction.ensembleVotes.xgboost === 'BUY' ? 92 : prediction.ensembleVotes.xgboost === 'SELL' ? 8 : 45 },
+    { name: 'Transformer', vote: prediction.ensembleVotes.transformer, score: prediction.ensembleVotes.transformer === 'BUY' ? 78 : prediction.ensembleVotes.transformer === 'SELL' ? 22 : 55 },
+  ];
 
   return (
     <div className="bg-slate-900/90 border-2 border-slate-800 rounded-[4rem] p-12 shadow-3xl relative overflow-hidden group">
-      <div className="absolute -top-20 -right-20 w-64 h-64 bg-indigo-600/15 blur-[100px] rounded-full group-hover:bg-indigo-600/20 transition-all duration-1000 animate-pulse"></div>
+      {/* Background FX */}
+      <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/10 blur-[120px] rounded-full group-hover:bg-indigo-600/20 transition-all duration-1000 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-50"></div>
       
-      <div className="flex items-center justify-between mb-12 relative z-10">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-center justify-between mb-12 relative z-10 gap-6">
         <div className="flex items-center gap-6">
-          <div className="p-5 bg-indigo-500/15 rounded-3xl border-2 border-indigo-500/30 shadow-3xl">
-            <Cpu className="w-10 h-10 text-indigo-400" />
+          <div className="p-5 bg-indigo-500/10 rounded-3xl border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.15)] relative overflow-hidden">
+            <Cpu className="w-10 h-10 text-indigo-400 relative z-10" />
+            <div className="absolute inset-0 bg-indigo-500/20 blur-xl animate-pulse"></div>
           </div>
           <div className="text-start">
             <h3 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">{t.neuralForecast}</h3>
-            <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.5em] mt-3">{t.inferenceEngineLabel}</p>
+            <div className="flex items-center gap-4 mt-3">
+               <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">{t.inferenceEngineLabel} v4.2</span>
+               <div className="h-3 w-px bg-slate-700"></div>
+               <span className="text-[10px] font-mono font-bold text-emerald-400 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></div>
+                  TENSOR CORES ACTIVE
+               </span>
+            </div>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-4 bg-slate-950/80 px-6 py-3 rounded-2xl border-2 border-white/5 shadow-2xl backdrop-blur-md">
-          <Activity className="w-5 h-5 text-emerald-500" />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t.g8Stable}</span>
+        
+        <div className="flex items-center gap-6">
+           <div className="flex flex-col items-end">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Inference Latency</span>
+              <span className="text-xl font-mono font-black text-indigo-300">{inferenceTime.toFixed(0)}ms</span>
+           </div>
+           <div className="p-3 bg-slate-950/50 rounded-2xl border border-white/10">
+              <Activity className="w-6 h-6 text-indigo-500 animate-pulse" />
+           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-stretch relative z-10">
-        <div className="space-y-10 flex flex-col">
-          <div className="bg-slate-950/70 border-2 border-white/5 rounded-[3.5rem] p-10 relative flex-1 shadow-2xl backdrop-blur-xl text-start">
-            <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.5em] block mb-6 italic opacity-70">{t.targetProjectionHorizon}</span>
-            <div className="flex items-end gap-6 mb-4">
-              <span className={`text-6xl font-black font-mono tracking-tighter ${isUp ? 'text-emerald-400' : isDown ? 'text-rose-400' : 'text-indigo-400'}`}>
-                ${prediction.predictedPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </span>
-              <div className={`mb-2 px-4 py-1.5 rounded-2xl text-[12px] font-black border-2 shadow-2xl transform hover:scale-110 transition-transform ${isUp ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : isDown ? 'bg-rose-500/20 text-rose-400 border-rose-500/50' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
-                {t[prediction.direction.toLowerCase()] || prediction.direction}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 relative z-10">
+        
+        {/* LEFT COLUMN: Prediction Core */}
+        <div className="xl:col-span-5 flex flex-col gap-8">
+           
+           {/* Main Prediction Card */}
+           <div className={`bg-slate-950/60 p-10 rounded-[3.5rem] border relative overflow-hidden transition-all duration-500 flex flex-col justify-between h-full shadow-2xl ${directionBorder}`}>
+              <div className={`absolute top-0 right-0 p-12 opacity-[0.05] transition-transform duration-700 ${isUp ? 'rotate-0' : 'rotate-180'}`}>
+                 <TrendingUp className={`w-64 h-64 ${directionColor}`} />
               </div>
-            </div>
-          </div>
 
-          <div className="px-4 text-start">
-            <div className="space-y-4 w-full">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest block italic">{t.structuralIntegrityConfidence}</span>
-                <span className={`text-3xl font-black font-mono ${isUp ? 'text-emerald-400' : isDown ? 'text-rose-400' : 'text-indigo-400'}`}>{prediction.probability}%</span>
+              <div>
+                 <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] block mb-6">{t.targetProjection}</span>
+                 <div className="flex items-baseline gap-4 mb-2">
+                    <span className={`text-6xl font-black font-mono tracking-tighter ${directionColor} drop-shadow-lg`}>
+                       ${prediction.predictedPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                 </div>
+                 <div className="flex items-center gap-4">
+                    <div className={`px-4 py-1.5 rounded-xl text-[12px] font-black uppercase tracking-widest border backdrop-blur-md ${directionBg} ${directionColor} ${directionBorder}`}>
+                       {t[prediction.direction.toLowerCase()] || prediction.direction}
+                    </div>
+                    {prediction.direction !== 'SIDEWAYS' && (
+                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                          {Math.abs(((prediction.predictedPrice - (currentPrice || 0)) / (currentPrice || 1)) * 100).toFixed(2)}% {isUp ? 'Upside' : 'Downside'}
+                       </span>
+                    )}
+                 </div>
               </div>
-              <div className="h-5 bg-slate-950 rounded-full overflow-hidden relative border-2 border-white/5 shadow-inner p-1">
-                <div 
-                  className={`h-full rounded-full transition-all duration-1000 relative ${isUp ? 'bg-emerald-500' : isDown ? 'bg-rose-500' : 'bg-indigo-500'}`} 
-                  style={{ width: `${prediction.probability}%` }}
-                />
+
+              <div className="mt-10 pt-10 border-t border-white/5">
+                 <div className="flex justify-between items-end mb-2">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Model Confidence</span>
+                    <span className="text-2xl font-black font-mono text-white">{prediction.probability}%</span>
+                 </div>
+                 <div className="relative h-4 bg-slate-900 rounded-full overflow-hidden border border-white/5">
+                    <div 
+                       className={`absolute top-0 left-0 h-full transition-all duration-1000 ${isUp ? 'bg-emerald-500' : isDown ? 'bg-rose-500' : 'bg-amber-500'}`}
+                       style={{ width: `${prediction.probability}%` }}
+                    >
+                       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                    </div>
+                 </div>
+                 <div className="mt-4 flex justify-between items-center">
+                    <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Live Fluctuations</span>
+                    <ConfidenceHeartbeat baseConfidence={prediction.probability} />
+                 </div>
               </div>
-            </div>
-          </div>
+           </div>
+
         </div>
 
-        <div className="bg-slate-950/40 border-2 border-white/5 rounded-[4rem] p-12 relative overflow-hidden h-full flex flex-col shadow-2xl backdrop-blur-3xl group/pattern text-start">
-          <div className="flex items-center gap-5 mb-8">
-            <div className="w-10 h-10 rounded-[1rem] bg-indigo-500/20 flex items-center justify-center border border-indigo-500/40">
-              <Languages className="w-5 h-5 text-indigo-400" />
-            </div>
-            <h4 className="text-[14px] font-black text-slate-400 uppercase tracking-[0.4em]">{t.patternSynthesis}</h4>
-          </div>
-          
-          <div className="mb-6 relative group/tooltip">
-            <div className="text-3xl font-black text-white italic tracking-tighter uppercase mb-2">
-              {prediction.patternDetected}
-            </div>
-            <div className="text-2xl font-black text-accent italic tracking-tighter uppercase border-b border-white/5 pb-4" dir="rtl">
-              {prediction.patternDetectedAr}
-            </div>
-            {/* Pattern Tooltip */}
-            <div className="absolute left-0 bottom-full mb-6 w-full max-w-[320px] bg-navy/95 border-2 border-accent/30 p-6 rounded-3xl opacity-0 translate-y-4 group-hover/tooltip:opacity-100 group-hover/tooltip:translate-y-0 transition-all duration-500 z-50 shadow-5xl backdrop-blur-3xl">
-              <div className="flex items-center gap-3 mb-4 text-accent">
-                <Info className="w-5 h-5" />
-                <span className="text-[11px] font-black uppercase tracking-widest">{t.lang === 'ar' ? 'تحليل النمط' : 'Pattern Insight'}</span>
+        {/* RIGHT COLUMN: Pattern & Logic */}
+        <div className="xl:col-span-7 flex flex-col gap-8">
+           
+           {/* Pattern Recognition Card */}
+           <div className="bg-slate-950/40 border border-white/5 rounded-[3.5rem] p-10 relative overflow-hidden flex flex-col shadow-lg group/pattern">
+              <div className="flex items-center justify-between mb-8">
+                 <div className="flex items-center gap-4">
+                    <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+                       <ScanFace className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <h4 className="text-[12px] font-black text-white uppercase tracking-[0.3em]">{t.patternSynthesis}</h4>
+                 </div>
+                 <div className="text-[9px] font-black text-indigo-400 uppercase tracking-widest animate-pulse border border-indigo-500/30 px-3 py-1 rounded-lg bg-indigo-500/5">Match Found</div>
               </div>
-              <p className="text-[12px] text-white font-bold leading-relaxed italic">
-                {t.lang === 'ar' 
-                  ? 'نمط عصبي مكتشف يشير إلى تجميع مؤسسي مخفي خلف مستويات السيولة الحالية.' 
-                  : 'A high-conviction neural sequence indicating institutional accumulation hidden behind current liquidity layers.'}
-              </p>
-              <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2">
-                <Target className="w-3 h-3 text-success" />
-                <span className="text-[9px] text-success font-black uppercase tracking-widest">{t.lang === 'ar' ? 'دقة عالية' : 'High Implication'}</span>
+
+              <div className="relative z-10 mb-8">
+                 <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2 group-hover/pattern:text-indigo-300 transition-colors">
+                    {prediction.patternDetected}
+                 </h3>
+                 <p className="text-xl font-black text-slate-500 uppercase tracking-tight" dir="rtl">
+                    {prediction.patternDetectedAr}
+                 </p>
               </div>
-            </div>
-          </div>
 
-          <div className="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-5">
-            <p className="text-[15px] text-slate-400 font-bold leading-relaxed italic" dir="ltr">
-              "{prediction.reasoning}"
-            </p>
-            <p className="text-[15px] text-text-bright font-bold leading-relaxed italic" dir="rtl">
-              "{prediction.reasoningAr}"
-            </p>
-          </div>
+              <div className="flex-1 bg-black/20 rounded-3xl p-6 border border-white/5 overflow-y-auto custom-scrollbar relative">
+                 <div className="flex gap-4">
+                    <div className="flex flex-col items-center gap-1 pt-1">
+                       <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_#6366f1]"></div>
+                       <div className="w-px h-full bg-indigo-500/20"></div>
+                    </div>
+                    <div className="space-y-4">
+                       <p className="text-[13px] text-slate-300 font-bold leading-relaxed font-mono">
+                          <span className="text-indigo-400 mr-2">{'>'}</span>{prediction.reasoning}
+                       </p>
+                       <p className="text-[14px] text-slate-400 font-bold leading-relaxed font-sans" dir="rtl">
+                          {prediction.reasoningAr}
+                       </p>
+                    </div>
+                 </div>
+              </div>
+           </div>
 
-          <div className="space-y-8 mt-10 border-t-2 border-white/5 pt-10">
-            <div className="flex items-center justify-between text-[11px] font-black text-slate-600 uppercase tracking-[0.5em]">
-               <span className="flex items-center gap-4">
-                 <Activity className="w-5 h-5 text-indigo-500" /> {t.statisticalHorizon}
-               </span>
-               <span className="text-white bg-slate-900 px-5 py-2 rounded-2xl border-2 border-white/10 shadow-3xl italic">{t.next} {prediction.timeframe}</span>
+           {/* Ensemble Consensus Visualizer */}
+           <div className="bg-slate-950/40 border border-white/5 rounded-[3rem] p-8 relative overflow-hidden flex flex-col justify-center">
+              <div className="flex justify-between items-center mb-6">
+                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <GitMerge className="w-4 h-4 text-white" /> {t.ensembleVoting}
+                 </span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 {ensembleData.map((model, i) => (
+                    <div key={i} className="bg-slate-900/50 rounded-2xl p-4 border border-white/5 flex flex-col gap-3 group/model hover:border-indigo-500/30 transition-all">
+                       <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{model.name}</span>
+                          <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${model.vote === 'BUY' ? 'bg-emerald-500/20 text-emerald-400' : model.vote === 'SELL' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                             {model.vote}
+                          </span>
+                       </div>
+                       <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                          <div 
+                             className={`h-full transition-all duration-1000 ${model.vote === 'BUY' ? 'bg-emerald-500' : model.vote === 'SELL' ? 'bg-rose-500' : 'bg-amber-500'}`} 
+                             style={{ width: `${model.score}%` }}
+                          />
+                       </div>
+                    </div>
+                 ))}
+              </div>
+           </div>
+
+        </div>
+      </div>
+
+      {/* Footer: Neural Activation Grid & Validation */}
+      <div className="mt-12 pt-10 border-t-2 border-white/5 grid grid-cols-1 md:grid-cols-2 gap-10 items-center relative z-10">
+         <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-center text-[9px] font-black text-slate-500 uppercase tracking-widest">
+               <span className="flex items-center gap-2"><Layers className="w-3 h-3" /> Neural Layer Activation</span>
+               <span className="text-indigo-400 animate-pulse">Processing...</span>
             </div>
+            <NeuralGrid />
+         </div>
+
+         <div className="flex justify-end">
             <button 
               onClick={onValidate}
-              className="w-full py-6 bg-indigo-600/15 hover:bg-indigo-600/25 border-2 border-indigo-500/30 rounded-3xl text-[12px] font-black uppercase tracking-[0.5em] text-indigo-300 transition-all flex items-center justify-center gap-6 group/btn"
+              className="w-full md:w-auto px-10 py-5 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/30 rounded-3xl text-[11px] font-black uppercase tracking-[0.3em] text-indigo-300 transition-all flex items-center justify-center gap-4 group/btn hover:scale-105 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)]"
             >
-              {t.validateCognitiveInference} <ChevronRight className={`w-6 h-6 group-hover/btn:translate-x-3 transition-transform ${t.lang === 'ar' ? 'rotate-180' : ''}`} />
+              {t.validateCognitiveInference} <ChevronRight className={`w-4 h-4 group-hover/btn:translate-x-2 transition-transform ${t.lang === 'ar' ? 'rotate-180' : ''}`} />
             </button>
-          </div>
-        </div>
+         </div>
       </div>
 
-      <div className="mt-12 pt-10 border-t-2 border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 px-4 relative z-10 text-start">
-        <div className="flex items-center gap-4 text-[11px] font-bold text-slate-600 uppercase tracking-[0.4em] italic">
-          <ShieldCheck className="w-5 h-5 text-emerald-500" /> 
-          {t.neuralIntegrity}
-        </div>
-        <button className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.6em] flex items-center gap-5 hover:text-white transition-all duration-500 group shadow-lg">
-          <Share2 className="w-5 h-5 group-hover:scale-150 transition-all" /> 
-          {t.exportMultiLayer}
-        </button>
-      </div>
     </div>
   );
 };

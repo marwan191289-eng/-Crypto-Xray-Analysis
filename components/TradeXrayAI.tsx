@@ -30,7 +30,7 @@ const NeuralActivityChart = () => {
 
   return (
     <div className="h-12 w-full opacity-50">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minHeight={48} minWidth={0}>
         <BarChart data={data}>
           <Bar dataKey="v" fill="#3B82F6" radius={[2, 2, 0, 0]} isAnimationActive={false}>
             {data.map((entry, index) => (

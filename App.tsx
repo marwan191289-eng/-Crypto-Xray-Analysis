@@ -78,6 +78,20 @@ const App: React.FC = () => {
 
   const currentMarket = useMemo(() => markets.find(m => m.symbol === selectedSymbol), [markets, selectedSymbol]);
 
+  // -- NEW: Broadcast Market State to Global Canvas --
+  useEffect(() => {
+    let state = 'neutral';
+    if (currentMarket) {
+      if (currentMarket.change24h >= 0.5) state = 'bullish';
+      else if (currentMarket.change24h <= -0.5) state = 'bearish';
+      else state = 'sideways';
+    }
+    
+    // Dispatch event for index.html canvas engine
+    window.dispatchEvent(new CustomEvent('market-state', { detail: state }));
+  }, [currentMarket]); 
+  // --------------------------------------------------
+
   const updateMarketData = useCallback(async () => {
     try {
       const updatedMarkets = await Promise.all(WATCHED_SYMBOLS.map(async (s) => {
@@ -411,7 +425,16 @@ const App: React.FC = () => {
               </div>
 
               <div ref={whaleBearRef} className="w-full reveal-anim" style={{ animationDelay: '0.9s' }}>
-                {currentMarket && <WhaleBearForensics metrics={whaleBearMetrics[selectedSymbol]} whaleTx={onChainMetrics[selectedSymbol]?.whaleTransactions || []} symbol={selectedSymbol} isLoading={!whaleBearMetrics[selectedSymbol]} t={t} />}
+                {currentMarket && (
+                  <WhaleBearForensics 
+                    metrics={whaleBearMetrics[selectedSymbol]} 
+                    whaleTx={onChainMetrics[selectedSymbol]?.whaleTransactions || []} 
+                    symbol={selectedSymbol} 
+                    isLoading={!whaleBearMetrics[selectedSymbol]} 
+                    t={t} 
+                    currentPrice={currentMarket.price}
+                  />
+                )}
               </div>
 
               <div ref={onChainRef} className="w-full reveal-anim" style={{ animationDelay: '1s' }}>

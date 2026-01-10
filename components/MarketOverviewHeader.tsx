@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { BlockchainStats, AIAnalysis } from '../types';
-import { Globe, Activity, Zap, TrendingUp, TrendingDown, Signal, Network, Cpu, Gauge, Radar, BarChart2, Scan, Radio } from 'lucide-react';
+import { Globe, Activity, Zap, TrendingUp, TrendingDown, Signal, Network, Cpu, Gauge, Radar, BarChart2, Scan, Radio, Wifi, Server } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
   t: any;
 }
 
-const HeaderCard = ({ children, className = "", style }: { children: React.ReactNode, className?: string, style?: React.CSSProperties }) => (
+const HeaderCard = ({ children, className = "", style }: { children?: React.ReactNode, className?: string, style?: React.CSSProperties }) => (
   <div className={`bg-slate-950/80 rounded-[2.5rem] p-8 border border-white/5 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden group flex flex-col justify-between min-h-[280px] hover:border-white/10 hover:shadow-[0_0_60px_rgba(59,130,246,0.1)] transition-all duration-500 ${className}`} style={style}>
     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 pointer-events-none"></div>
     {children}
@@ -76,7 +76,29 @@ const MarketOverviewHeader: React.FC<Props> = ({ stats, aiAnalysis, t }) => {
 
   // Derived Values
   const isCapUp = liveCap > 2.65;
-  const fgAngle = (liveFg / 100) * 180;
+  const fgColor = liveFg >= 75 ? '#10b981' : liveFg >= 50 ? '#a3e635' : liveFg >= 25 ? '#facc15' : '#f43f5e';
+
+  // Network Health Logic
+  const gas = stats.ethGasPrice || 0;
+  let healthStatus = 'OPTIMAL';
+  let healthColor = 'text-emerald-400';
+  let healthBorder = 'border-emerald-500/20';
+  let healthBg = 'bg-emerald-500/10';
+  let healthGlow = 'shadow-[0_0_10px_rgba(16,185,129,0.2)]';
+
+  if (gas > 100) {
+    healthStatus = 'CONGESTED';
+    healthColor = 'text-rose-400';
+    healthBorder = 'border-rose-500/20';
+    healthBg = 'bg-rose-500/10';
+    healthGlow = 'shadow-[0_0_10px_rgba(244,63,94,0.2)]';
+  } else if (gas > 40) {
+    healthStatus = 'HIGH LOAD';
+    healthColor = 'text-amber-400';
+    healthBorder = 'border-amber-500/20';
+    healthBg = 'bg-amber-500/10';
+    healthGlow = 'shadow-[0_0_10px_rgba(251,191,36,0.2)]';
+  }
 
   // Signal Mapping Logic
   const rawSignal = aiAnalysis?.signal || 'WAIT';
@@ -145,9 +167,18 @@ const MarketOverviewHeader: React.FC<Props> = ({ stats, aiAnalysis, t }) => {
                     </div>
                     <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] drop-shadow-md">{t.totalCap}</h2>
                  </div>
-                 <div className="flex items-center gap-2 bg-blue-500/5 px-2.5 py-1 rounded-lg border border-blue-500/10 backdrop-blur-md">
-                    <LivePulse />
-                    <span className="text-[9px] font-black text-blue-300 uppercase tracking-widest text-shadow-sm">Live</span>
+                 
+                 <div className="flex gap-2">
+                    {/* Network Health Pill */}
+                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border backdrop-blur-md ${healthBg} ${healthBorder} ${healthColor} ${healthGlow}`}>
+                       <Wifi className="w-3 h-3" />
+                       <span className="text-[8px] font-black uppercase tracking-wider">{healthStatus}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 bg-blue-500/5 px-2.5 py-1 rounded-lg border border-blue-500/10 backdrop-blur-md">
+                       <LivePulse />
+                       <span className="text-[9px] font-black text-blue-300 uppercase tracking-widest text-shadow-sm">Live</span>
+                    </div>
                  </div>
               </div>
               <div className="flex items-baseline gap-2">
@@ -162,7 +193,7 @@ const MarketOverviewHeader: React.FC<Props> = ({ stats, aiAnalysis, t }) => {
            </div>
            
            <div className="relative h-20 w-full opacity-60 mt-4 mask-gradient-b">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minHeight={80} minWidth={0}>
                 <AreaChart data={capHistory}>
                   <defs>
                     <linearGradient id="capNeon" x1="0" y1="0" x2="0" y2="1">
@@ -269,64 +300,116 @@ const MarketOverviewHeader: React.FC<Props> = ({ stats, aiAnalysis, t }) => {
         </div>
       </HeaderCard>
 
-      {/* 3. Fear & Greed (Holographic Gauge) */}
+      {/* 3. Fear & Greed (Holographic Gauge - Precision SVG) */}
       <HeaderCard className="hover:shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-visible">
         <div className="relative z-10 flex flex-col h-full justify-between">
            <div className="flex justify-between items-start">
               <div className="flex items-center gap-3">
-                 <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                   <Zap className="w-5 h-5 text-emerald-400" />
+                 <div className="p-2.5 bg-slate-900/50 rounded-xl border border-white/10 shadow-inner">
+                   <Zap className="w-5 h-5" style={{ color: fgColor }} />
                  </div>
                  <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] drop-shadow-md">{t.fearGreed}</h2>
               </div>
-              <span className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase border backdrop-blur-md transition-all ${liveFg > 50 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-rose-500/10 border-rose-500/30 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.2)]'}`}>
+              <span 
+                className="text-[10px] font-black px-3 py-1 rounded-lg uppercase border backdrop-blur-md transition-all"
+                style={{ 
+                    color: fgColor, 
+                    backgroundColor: `${fgColor}10`, 
+                    borderColor: `${fgColor}30`,
+                    boxShadow: `0 0 15px ${fgColor}20`
+                }}
+              >
                  {liveFg > 75 ? 'Ext. Greed' : liveFg > 50 ? 'Greed' : liveFg < 25 ? 'Ext. Fear' : 'Fear'}
               </span>
            </div>
 
-           <div className="flex flex-col items-center justify-center flex-1 py-4 relative z-0">
-              {/* Neon Glow Behind Gauge */}
-              <div className="absolute inset-0 bg-emerald-500/5 blur-[60px] rounded-full pointer-events-none"></div>
+           <div className="flex flex-col items-center justify-center flex-1 py-6 relative z-0">
+              {/* Ambient Glow */}
+              <div 
+                  className="absolute inset-0 blur-[80px] rounded-full pointer-events-none transition-colors duration-1000"
+                  style={{ backgroundColor: `${fgColor}10` }}
+              ></div>
 
-              <div className="relative w-full h-32 flex items-end justify-center">
-                 {/* Gauge Background Track */}
-                 <div className="absolute bottom-0 w-64 h-32 rounded-t-full border-[24px] border-slate-900 border-b-0 shadow-inner z-10"></div>
-                 
-                 {/* Dynamic Neon Gauge Arc */}
-                 <div 
-                   className="absolute bottom-0 w-64 h-32 rounded-t-full border-[24px] border-emerald-500 border-b-0 z-20"
-                   style={{ 
-                     clipPath: 'polygon(0 100%, 100% 100%, 100% 0, 0 0)', 
-                     transformOrigin: 'bottom center',
-                     transform: `rotate(${fgAngle - 180}deg)`,
-                     transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                     filter: 'drop-shadow(0 0 10px #10b981)'
-                   }}
-                 ></div>
-                 
-                 {/* Holographic Needle - HIGH Z-INDEX, Solid White (No Mix Blend) */}
-                 <div 
-                   className="absolute bottom-0 left-1/2 w-1.5 h-32 bg-white origin-bottom rounded-full shadow-[0_0_20px_white] z-50 pointer-events-none"
-                   style={{ 
-                     transform: `translateX(-50%) rotate(${fgAngle - 90}deg)`,
-                     transition: 'transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)' 
-                   }}
-                 >
-                   {/* Needle Tip Glow */}
-                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_15px_white]"></div>
-                 </div>
+              <div className="relative w-full flex items-center justify-center">
+                 <svg viewBox="0 0 200 110" className="w-full h-32 overflow-visible">
+                    <defs>
+                        <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#f43f5e" />
+                            <stop offset="50%" stopColor="#facc15" />
+                            <stop offset="100%" stopColor="#10b981" />
+                        </linearGradient>
+                        <filter id="gaugeGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="3" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                    </defs>
+                    
+                    {/* Background Track */}
+                    <path 
+                        d="M 20 100 A 80 80 0 0 1 180 100" 
+                        fill="none" 
+                        stroke="#1e293b" 
+                        strokeWidth="12" 
+                        strokeLinecap="round" 
+                    />
 
-                 {/* Needle Pivot Point */}
-                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-4 h-4 bg-white rounded-full z-50 shadow-[0_0_10px_white]"></div>
-                 
-                 {/* Number Display - Lower Z-Index and Positioned Lower to avoid overlap */}
-                 <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-4xl font-black text-white font-mono z-10 tabular-nums drop-shadow-[0_0_20px_rgba(0,0,0,0.8)] opacity-90">{liveFg}</span>
+                    {/* Active Track (Masked) */}
+                    <path 
+                        d="M 20 100 A 80 80 0 0 1 180 100" 
+                        fill="none" 
+                        stroke="url(#gaugeGradient)" 
+                        strokeWidth="12" 
+                        strokeLinecap="round"
+                        strokeDasharray={251.2} 
+                        strokeDashoffset={251.2 * (1 - (liveFg / 100))}
+                        className="transition-all duration-1000 ease-out"
+                        filter="url(#gaugeGlow)"
+                    />
+
+                    {/* Tick Marks */}
+                    {[0, 25, 50, 75, 100].map((tick) => {
+                        const angle = (tick / 100) * 180; // 0 to 180
+                        const rad = (angle * Math.PI) / 180;
+                        // Coordinates: cx=100, cy=100. r_inner=65, r_outer=75.
+                        // Map angle 0 -> West (-1, 0), 90 -> North (0, -1), 180 -> East (1, 0)
+                        // x = 100 - r * cos(rad), y = 100 - r * sin(rad)
+                        const x1 = 100 - 68 * Math.cos(rad);
+                        const y1 = 100 - 68 * Math.sin(rad);
+                        const x2 = 100 - 78 * Math.cos(rad);
+                        const y2 = 100 - 78 * Math.sin(rad);
+                        return (
+                            <line 
+                                key={tick} 
+                                x1={x1} y1={y1} x2={x2} y2={y2} 
+                                stroke={tick === 0 || tick === 100 ? "#64748b" : "#334155"} 
+                                strokeWidth="2" 
+                            />
+                        );
+                    })}
+
+                    {/* Needle */}
+                    <g 
+                        transform={`translate(100, 100) rotate(${(liveFg / 100) * 180 - 180})`} // -180 deg offset to start from West
+                        className="transition-transform duration-1000 cubic-bezier(0.34, 1.56, 0.64, 1)"
+                    >
+                        <path d="M 0 0 L 75 0" stroke="white" strokeWidth="2" filter="drop-shadow(0 0 2px white)" />
+                        <circle cx="75" cy="0" r="3" fill="white" filter="drop-shadow(0 0 4px white)" />
+                        <circle cx="0" cy="0" r="6" fill="white" filter="drop-shadow(0 0 5px white)" />
+                    </g>
+                 </svg>
+              </div>
+
+              {/* Value Display */}
+              <div className="absolute bottom-[20px] flex flex-col items-center">
+                  <span className="text-4xl font-black text-white font-mono tabular-nums drop-shadow-lg tracking-tighter" style={{ textShadow: `0 0 20px ${fgColor}60` }}>
+                      {liveFg.toFixed(0)}
+                  </span>
               </div>
            </div>
            
            <div className="flex justify-between text-[9px] font-black text-slate-600 uppercase tracking-widest mt-4 px-2">
-              <span className="text-rose-500/70 text-glow-bear">Fear (0)</span>
-              <span className="text-emerald-500/70 text-glow-bull">Greed (100)</span>
+              <span className="text-rose-500 opacity-80">Fear (0)</span>
+              <span className="text-emerald-500 opacity-80">Greed (100)</span>
            </div>
         </div>
       </HeaderCard>
