@@ -111,7 +111,7 @@ const SystemArchitectureMonitor: React.FC<Props> = ({ t }) => {
 
   const NodeVisualizer = ({ node }: { node: SystemNode }) => (
     <div className="relative group">
-      <div className={`cyber-card rounded-[2rem] p-6 border transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl ${node.type === 'AI' ? 'border-indigo-500/20 hover:border-indigo-500/50' : 'border-white/5 hover:border-emerald-500/30'}`}>
+      <div className={`cyber-card rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-6 border transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl ${node.type === 'AI' ? 'border-indigo-500/20 hover:border-indigo-500/50' : 'border-white/5 hover:border-emerald-500/30'}`}>
         {/* Status Line */}
         <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-current to-transparent opacity-20 group-hover:opacity-100 transition-opacity" style={{ color: node.type === 'AI' ? '#6366f1' : '#10b981' }} />
         
@@ -185,7 +185,7 @@ const SystemArchitectureMonitor: React.FC<Props> = ({ t }) => {
     <div className="flex flex-col gap-12 w-full">
       
       {/* SECTION 1: CLUSTER TOPOLOGY */}
-      <div className="cyber-card rounded-[4rem] p-12 relative overflow-hidden group border border-white/5">
+      <div className="cyber-card rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 relative overflow-hidden group border border-white/5">
         <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:scale-110 transition-transform -rotate-12">
           <Server className="w-96 h-96 text-emerald-400" />
         </div>
@@ -258,7 +258,7 @@ const SystemArchitectureMonitor: React.FC<Props> = ({ t }) => {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-12">
          
          {/* AI Processing Unit */}
-         <div className="xl:col-span-8 cyber-card rounded-[4rem] p-12 relative overflow-hidden border border-white/5">
+         <div className="xl:col-span-8 cyber-card rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 relative overflow-hidden border border-white/5">
             <div className="absolute bottom-0 left-0 p-12 opacity-[0.03] rotate-12">
                <Brain className="w-96 h-96 text-indigo-400" />
             </div>
@@ -279,7 +279,7 @@ const SystemArchitectureMonitor: React.FC<Props> = ({ t }) => {
             </div>
 
             {/* Neural Activation Grid */}
-            <div className="mt-10 bg-slate-950/50 rounded-[2.5rem] p-8 border border-white/5 relative z-10">
+            <div className="mt-10 bg-slate-950/50 rounded-[2rem] md:rounded-[2.5rem] p-8 border border-white/5 relative z-10">
                <div className="flex justify-between items-center mb-6">
                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                    <Share2 className="w-4 h-4 text-indigo-400" /> {t.neuralSynapseActivationMap}
@@ -298,7 +298,7 @@ const SystemArchitectureMonitor: React.FC<Props> = ({ t }) => {
          </div>
 
          {/* System Logs */}
-         <div className="xl:col-span-4 cyber-card rounded-[4rem] p-10 relative overflow-hidden flex flex-col border border-white/5">
+         <div className="xl:col-span-4 cyber-card rounded-[2rem] md:rounded-[4rem] p-6 md:p-10 relative overflow-hidden flex flex-col border border-white/5">
             <div className="flex items-center gap-4 mb-8">
                <Terminal className="w-6 h-6 text-slate-400" />
                <h3 className="text-[12px] font-black text-white uppercase tracking-[0.4em]">{t.recentLogs}</h3>

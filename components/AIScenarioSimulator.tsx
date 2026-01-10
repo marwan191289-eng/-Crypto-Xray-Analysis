@@ -88,7 +88,7 @@ const AIScenarioSimulator: React.FC<Props> = ({ prediction, currentPrice, isLoad
 
   if (isLoading || !prediction) {
     return (
-      <div className="bg-slate-950/40 rounded-[4rem] p-12 border border-white/5 animate-pulse min-h-[600px]">
+      <div className="bg-slate-950/40 rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 border border-white/5 animate-pulse min-h-[600px]">
          <div className="flex items-center gap-6 mb-12">
             <div className="w-16 h-16 bg-slate-800 rounded-2xl"></div>
             <div className="w-64 h-8 bg-slate-800 rounded-xl"></div>
@@ -102,31 +102,6 @@ const AIScenarioSimulator: React.FC<Props> = ({ prediction, currentPrice, isLoad
     if (vote === 'BUY') return 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10';
     if (vote === 'SELL') return 'text-rose-400 border-rose-500/30 bg-rose-500/10';
     return 'text-amber-400 border-amber-500/30 bg-amber-500/10';
-  };
-
-  const ScenarioPath = ({ type, probability }: { type: string, probability: number }) => {
-    const data = useMemo(() => {
-      const points = [];
-      let val = 50;
-      const trend = type === 'BULLISH' ? 0.8 : type === 'BEARISH' ? -0.8 : 0;
-      for(let i=0; i<20; i++) {
-        val += trend + (Math.random() - 0.5) * 2;
-        points.push({ i, val });
-      }
-      return points;
-    }, [type, frame]); // Regenerate slightly every frame change? No, keep stable-ish.
-
-    const color = type === 'BULLISH' ? '#10b981' : type === 'BEARISH' ? '#f43f5e' : '#6366f1';
-
-    return (
-      <div className="h-16 w-full opacity-60">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <Line type="monotone" dataKey="val" stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    );
   };
 
   // Helper for Chart inside component to avoid import issues if any
@@ -154,20 +129,20 @@ const AIScenarioSimulator: React.FC<Props> = ({ prediction, currentPrice, isLoad
   };
 
   return (
-    <div className="cyber-card rounded-[4rem] p-12 border border-white/5 relative overflow-hidden group">
+    <div className="cyber-card rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 border border-white/5 relative overflow-hidden group">
       <div className="absolute top-0 right-0 p-12 opacity-[0.02] pointer-events-none group-hover:scale-110 transition-transform">
         <Brain className="w-64 h-64 text-indigo-400" />
       </div>
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 relative z-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8 md:mb-12 relative z-10">
         <div className="flex items-center gap-6">
           <div className="p-5 bg-indigo-500/10 rounded-3xl border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.15)] relative">
             <GitMerge className="w-8 h-8 text-indigo-400 relative z-10" />
             <div className="absolute inset-0 bg-indigo-500/20 blur-xl animate-pulse"></div>
           </div>
           <div>
-            <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic leading-none">{t.quantumIntelligence}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase italic leading-none">{t.quantumIntelligence}</h3>
             <div className="flex items-center gap-3 mt-3">
                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">{t.ensembleVoting}</span>
                <div className="h-px w-8 bg-slate-700"></div>
@@ -192,7 +167,7 @@ const AIScenarioSimulator: React.FC<Props> = ({ prediction, currentPrice, isLoad
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 relative z-10">
         
         {/* COL 1: Neural Ensemble Visualizer (Left) */}
-        <div className="xl:col-span-5 bg-slate-950/40 p-8 rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col justify-between">
+        <div className="xl:col-span-5 bg-slate-950/40 p-6 md:p-8 rounded-[2rem] md:rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col justify-between">
            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.05),transparent_70%)]"></div>
            
            <div className="flex justify-between items-start mb-8 relative z-10">
@@ -261,7 +236,7 @@ const AIScenarioSimulator: React.FC<Props> = ({ prediction, currentPrice, isLoad
         <div className="xl:col-span-7 flex flex-col gap-8">
            
            {/* Bell Curve Chart */}
-           <div className="bg-slate-950/40 p-8 rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden h-[350px] flex flex-col">
+           <div className="bg-slate-950/40 p-6 md:p-8 rounded-[2rem] md:rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden h-[350px] flex flex-col">
               <div className="flex justify-between items-start mb-4 relative z-10">
                  <div>
                     <h4 className="text-[13px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
@@ -324,7 +299,7 @@ const AIScenarioSimulator: React.FC<Props> = ({ prediction, currentPrice, isLoad
            </div>
 
            {/* Event Horizon Timeline */}
-           <div className="bg-slate-950/40 p-8 rounded-[3rem] border border-white/5 relative overflow-hidden flex-1">
+           <div className="bg-slate-950/40 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/5 relative overflow-hidden flex-1">
               <div className="flex items-center gap-3 mb-6">
                  <Clock className="w-5 h-5 text-amber-400" />
                  <h4 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">{t.eventResponseMatrix}</h4>
@@ -369,7 +344,7 @@ const AIScenarioSimulator: React.FC<Props> = ({ prediction, currentPrice, isLoad
       {/* Bottom: Monte Carlo Paths */}
       <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
          {prediction.scenarios.map((s, i) => (
-            <div key={i} className={`p-6 rounded-[2.5rem] border relative overflow-hidden transition-all duration-500 hover:-translate-y-1 ${s.type === 'BULLISH' ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40' : s.type === 'BEARISH' ? 'bg-rose-500/5 border-rose-500/20 hover:border-rose-500/40' : 'bg-indigo-500/5 border-indigo-500/20 hover:border-indigo-500/40'}`}>
+            <div key={i} className={`p-6 rounded-[2rem] md:rounded-[2.5rem] border relative overflow-hidden transition-all duration-500 hover:-translate-y-1 ${s.type === 'BULLISH' ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40' : s.type === 'BEARISH' ? 'bg-rose-500/5 border-rose-500/20 hover:border-rose-500/40' : 'bg-indigo-500/5 border-indigo-500/20 hover:border-indigo-500/40'}`}>
                <div className="flex justify-between items-start mb-4">
                   <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border ${s.type === 'BULLISH' ? 'text-emerald-400 border-emerald-500/30' : s.type === 'BEARISH' ? 'text-rose-400 border-rose-500/30' : 'text-indigo-400 border-indigo-500/30'}`}>
                      {t[s.type] || s.type}

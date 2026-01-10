@@ -98,7 +98,7 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
 
   if (isLoading && !analysis) {
     return (
-      <div className="bg-slate-950/40 animate-pulse space-y-8 min-h-[600px] border border-white/5 rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 relative overflow-hidden">
+      <div className="bg-slate-950/40 animate-pulse space-y-8 min-h-[600px] border border-white/5 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
         <div className="flex items-center gap-6 mb-12">
            <div className="w-16 h-16 bg-slate-800/50 rounded-3xl"></div>
@@ -128,7 +128,7 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
   const isHighVol = volatilityVal > 3.0;
 
   return (
-    <div className={`cyber-card overflow-hidden transition-all duration-700 min-w-0 border-white/10 shadow-3xl rounded-[2.5rem] md:rounded-[4rem] p-0 relative group ${analysis.isFallback ? 'border-amber-500/30' : ''}`}>
+    <div className={`cyber-card overflow-hidden transition-all duration-700 min-w-0 border-white/10 shadow-3xl rounded-[2rem] md:rounded-[3.5rem] p-0 relative group ${analysis.isFallback ? 'border-amber-500/30' : ''}`}>
       
       {/* Top Status Bar */}
       <div className="bg-black/40 border-b border-white/5 px-6 md:px-10 py-4 flex flex-col md:flex-row justify-between items-center backdrop-blur-md gap-4">
@@ -151,7 +151,7 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
         </div>
       </div>
 
-      <div className="p-6 md:p-14 space-y-12">
+      <div className="p-6 md:p-10 space-y-12">
         
         {/* Main Signal Core */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">

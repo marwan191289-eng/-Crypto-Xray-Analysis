@@ -272,19 +272,19 @@ const App: React.FC = () => {
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <header className="bg-bg/40 backdrop-blur-3xl header-glow-border flex flex-col z-40 border-b border-white/5">
-          {/* Top Bar: Status - Now Visible on Mobile */}
+          {/* Top Bar: Status */}
           <div className="bg-black/30 px-4 md:px-12 py-2 flex flex-col md:flex-row justify-between items-center border-b border-white/5 gap-2">
              <div className="flex items-center gap-4 md:gap-8 flex-wrap justify-center">
-                <div className="flex items-center gap-3">
-                   <Wifi className="w-3.5 h-3.5 text-success" />
-                   <span className="text-[9px] font-black text-muted uppercase tracking-widest">{t.globalNodeStatus}: <span className="text-success">{t.nodeLocation}</span></span>
+                <div className="flex items-center gap-2 md:gap-3">
+                   <Wifi className="w-3 h-3 md:w-3.5 md:h-3.5 text-success" />
+                   <span className="text-[8px] md:text-[9px] font-black text-muted uppercase tracking-widest">{t.globalNodeStatus}: <span className="text-success">{t.nodeLocation}</span></span>
                 </div>
-                <div className="flex items-center gap-3">
-                   <Clock className="w-3.5 h-3.5 text-accent" />
-                   <span className="text-[9px] font-black text-muted uppercase tracking-widest">{t.msLatency}: <span className="text-accent">{nodeLatency}ms</span></span>
+                <div className="flex items-center gap-2 md:gap-3">
+                   <Clock className="w-3 h-3 md:w-3.5 md:h-3.5 text-accent" />
+                   <span className="text-[8px] md:text-[9px] font-black text-muted uppercase tracking-widest">{t.msLatency}: <span className="text-accent">{nodeLatency}ms</span></span>
                 </div>
              </div>
-             <div className="flex items-center gap-6">
+             <div className="flex items-center gap-6 hidden md:flex">
                 <div className="flex items-center gap-2">
                    <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
                    <span className="text-[9px] font-black text-muted uppercase tracking-widest">Global Forensic Mainnet</span>
@@ -292,53 +292,70 @@ const App: React.FC = () => {
              </div>
           </div>
 
-          {/* Main Header - Consistent on Mobile */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between px-4 md:px-12 py-4 gap-4 md:gap-8">
-            <div className="flex items-center justify-between md:justify-start gap-4 md:gap-10 flex-1 min-w-0">
+          {/* Main Header */}
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between px-4 md:px-10 py-4 gap-4 xl:gap-8">
+            
+            {/* BRANDING - Visible on Mobile/Tablet to replace hidden Sidebar brand */}
+            <div className="flex lg:hidden items-center gap-5 cursor-pointer group mb-2" onClick={() => scrollToSection('dashboard', dashboardRef)}>
+              <div className="w-14 h-14 fusion-btn-xray rounded-2xl flex items-center justify-center flex-shrink-0 transition-all group-hover:rotate-12 shadow-glow shadow-accent/20">
+                <Eye className="w-7 h-7 text-white" />
+                <div className="scanner-beam"></div>
+              </div>
+              <div className="text-start">
+                <h1 className="text-2xl leading-none hologram-title">
+                  {t.appNamePart1} <span className="text-accent">{t.appNameAccent}</span>{t.appNameSuffix}
+                </h1>
+                <div className="mt-2 flex items-center gap-2">
+                  <ScanText className="w-3 h-3 text-accent opacity-60" />
+                  <span className="slogan-xray text-[9px]" data-text={t.seeInside}>{t.seeInside}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 flex-1 min-w-0">
               
               <div className="flex flex-col text-start min-w-0 w-full md:w-auto">
                  <span className="text-[9px] font-black text-accent uppercase tracking-[0.5em] mb-2 italic opacity-60 flex items-center gap-2">
                     <Target className="w-3 h-3" /> {t.targetIdentity}
                  </span>
-                 <div className="flex items-center gap-5 justify-between md:justify-start">
-                   <div className="relative group overflow-hidden px-6 md:px-10 py-3 md:py-4 bg-white/5 rounded-2xl border border-white/10 text-xl md:text-2xl font-black text-white font-mono shadow-inner hover:border-accent/50 transition-all cursor-crosshair flex-1 md:flex-none text-center md:text-left">
+                 <div className="flex flex-wrap items-center gap-3 md:gap-5">
+                   <div className="relative group overflow-hidden px-6 md:px-10 py-3 md:py-4 bg-white/5 rounded-2xl border border-white/10 text-xl md:text-2xl font-black text-white font-mono shadow-inner hover:border-accent/50 transition-all cursor-crosshair">
                      <div className="scanner-line"></div>
                      {selectedSymbol}/USDT
                    </div>
-                   <div className="flex items-center gap-4 px-3 md:px-5 py-2.5 bg-success/10 rounded-xl border border-success/20 shadow-lg">
+                   <div className="flex items-center gap-3 px-3 md:px-5 py-2.5 bg-success/10 rounded-xl border border-success/20 shadow-lg">
                       <div className="status-pulse" />
                       <span className="text-[9px] md:text-[11px] font-black text-success uppercase italic tracking-widest">{t.liveFeed}</span>
                    </div>
                  </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3 md:gap-6 flex-shrink-0 flex-wrap justify-end">
-              
-              {/* HEADER BADGE - Visible on large screens */}
+              {/* HEADER BADGE - Positioned to flow naturally */}
               <div 
-                className="hidden xl:flex relative px-6 py-3 rounded-2xl items-center gap-4 bg-slate-950/80 border border-gold/20 shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:border-gold/50 hover:shadow-[0_0_25px_rgba(212,175,55,0.2)] transition-all cursor-pointer group overflow-hidden"
+                className="w-full md:w-auto relative px-4 py-3 md:px-6 md:py-3 rounded-xl md:rounded-2xl flex items-center justify-center md:justify-start gap-4 bg-slate-950/80 border border-gold/20 shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:border-gold/50 hover:shadow-[0_0_25px_rgba(212,175,55,0.2)] transition-all cursor-pointer group overflow-hidden mt-2 md:mt-0"
                 onClick={() => handleLinkClick(t.builtByMarwan)}
               >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gold/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                  <div className="relative p-2 bg-gold/10 rounded-xl border border-gold/20">
-                      <Fingerprint className="w-5 h-5 text-gold" />
+                  <div className="relative p-1.5 md:p-2 bg-gold/10 rounded-lg md:rounded-xl border border-gold/20">
+                      <Fingerprint className="w-4 h-4 md:w-5 md:h-5 text-gold" />
                       <div className="absolute inset-0 bg-gold/20 blur-md rounded-full opacity-50 animate-pulse"></div>
                   </div>
                   <div className="flex flex-col text-start z-10">
-                      <span className="text-[11px] text-white font-black italic tracking-widest uppercase">{t.builtByMarwan}</span>
+                      <span className="text-[9px] md:text-[11px] text-white font-black italic tracking-widest uppercase">{t.builtByMarwan}</span>
                       <div className="flex items-center gap-1.5">
                           <div className="w-1 h-1 rounded-full bg-gold shadow-[0_0_5px_#D4AF37] animate-ping" />
-                          <span className="text-[7px] text-gold font-bold tracking-[0.3em] opacity-90">SYSTEM CORE G8</span>
+                          <span className="text-[6px] md:text-[7px] text-gold font-bold tracking-[0.3em] opacity-90">SYSTEM CORE G8</span>
                       </div>
                   </div>
               </div>
+            </div>
 
-              {/* Server Refresh Button */}
+            {/* Actions Row */}
+            <div className="flex items-center gap-3 md:gap-4 flex-wrap justify-end md:justify-end border-t xl:border-t-0 border-white/5 pt-4 xl:pt-0">
               <button 
                 onClick={handleGlobalRefresh}
                 disabled={isRefreshing}
-                className="relative p-3 rounded-xl md:p-3.5 md:rounded-2xl bg-slate-900/50 border border-white/10 hover:border-accent/50 hover:bg-accent/10 transition-all group overflow-hidden"
+                className="relative p-3 rounded-xl md:p-4 md:rounded-2xl bg-slate-900/50 border border-white/10 hover:border-accent/50 hover:bg-accent/10 transition-all group overflow-hidden"
                 title={t.terminalSync}
               >
                 <div className={`absolute inset-0 bg-accent/20 blur-xl transition-opacity duration-500 ${isRefreshing ? 'opacity-100' : 'opacity-0'}`}></div>
@@ -353,13 +370,13 @@ const App: React.FC = () => {
               <button 
                 onClick={handleRefreshAI}
                 disabled={isAnalyzing || isMLRunning}
-                className={`fusion-btn-xray px-6 py-3 md:px-10 md:py-5 rounded-[2rem] md:rounded-[2.5rem] text-white flex items-center gap-3 md:gap-5 disabled:opacity-50 group transition-all shadow-glow shadow-accent/40`}
+                className={`fusion-btn-xray px-5 py-3 md:px-8 md:py-4 rounded-[2rem] md:rounded-[2.5rem] text-white flex items-center gap-3 md:gap-4 disabled:opacity-50 group transition-all shadow-glow shadow-accent/40`}
               >
                 <div className="relative">
                   <Layers className={`w-5 h-5 md:w-6 md:h-6 ${isAnalyzing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-700'}`} />
                   <div className="absolute inset-0 bg-white/30 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <span className="text-[10px] md:text-[14px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] whitespace-nowrap italic">{t.xRayAnalysis}</span>
+                <span className="text-[10px] md:text-[13px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] whitespace-nowrap italic">{t.xRayAnalysis}</span>
                 <div className="scanner-beam"></div>
               </button>
             </div>
@@ -367,14 +384,14 @@ const App: React.FC = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto custom-scrollbar relative" ref={dashboardRef}>
-          <div className="p-4 md:p-8 lg:p-14 space-y-12 md:space-y-20 pb-32 md:pb-24">
+          <div className="p-4 md:p-10 space-y-12 md:space-y-20 pb-32 md:pb-24">
             
             {/* New Market Overview Header Replacing Old Cards */}
             <MarketOverviewHeader stats={stats} aiAnalysis={aiAnalysis} t={t} />
 
-            <div className="flex flex-col gap-12 md:gap-24 w-full max-w-screen-2xl mx-auto min-w-0">
+            <div className="flex flex-col gap-10 md:gap-24 w-full max-w-screen-2xl mx-auto min-w-0">
               <div ref={marketsRef} className="flex flex-col gap-6 md:gap-10 w-full reveal-anim" style={{ animationDelay: '0.2s' }}>
-                <div className="cyber-card p-6 md:p-10 rounded-[2rem] md:rounded-[4rem] text-start border-white/10 shadow-3xl bg-bg/40 backdrop-blur-xl relative overflow-hidden">
+                <div className="cyber-card p-6 md:p-10 rounded-[2rem] md:rounded-[3.5rem] text-start border-white/10 shadow-3xl bg-bg/40 backdrop-blur-xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-10 opacity-5">
                      <Globe className="w-64 h-64 text-accent" />
                   </div>
@@ -442,7 +459,7 @@ const App: React.FC = () => {
                     })}
                   </div>
                 </div>
-                <div className="cyber-card rounded-[2rem] md:rounded-[4rem] p-4 md:p-8 relative min-h-[450px] md:min-h-[750px] w-full shadow-5xl border-white/10">
+                <div className="cyber-card rounded-[2rem] md:rounded-[3.5rem] p-4 md:p-8 relative min-h-[450px] md:min-h-[750px] w-full shadow-5xl border-white/10">
                   {currentMarket && <MarketChart data={currentMarket} analysis={aiAnalysis} t={t} />}
                 </div>
               </div>

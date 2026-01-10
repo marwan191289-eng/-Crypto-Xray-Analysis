@@ -96,7 +96,7 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
 
   if (isLoading && !prediction) {
     return (
-      <div className="bg-slate-900/80 border-2 border-slate-800 rounded-[3.5rem] p-14 relative overflow-hidden shadow-2xl min-h-[600px] flex flex-col items-center justify-center">
+      <div className="bg-slate-900/80 border-2 border-slate-800 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-14 relative overflow-hidden shadow-2xl min-h-[600px] flex flex-col items-center justify-center">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
         <div className="relative z-10 flex flex-col items-center gap-8">
            <div className="w-24 h-24 relative">
@@ -129,20 +129,20 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
   ];
 
   return (
-    <div className="bg-slate-900/90 border-2 border-slate-800 rounded-[4rem] p-12 shadow-3xl relative overflow-hidden group">
+    <div className="bg-slate-900/90 border-2 border-slate-800 rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 shadow-3xl relative overflow-hidden group">
       {/* Background FX */}
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/10 blur-[120px] rounded-full group-hover:bg-indigo-600/20 transition-all duration-1000 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-50"></div>
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-center justify-between mb-12 relative z-10 gap-6">
+      <div className="flex flex-col md:flex-row items-center justify-between mb-8 md:mb-12 relative z-10 gap-6">
         <div className="flex items-center gap-6">
           <div className="p-5 bg-indigo-500/10 rounded-3xl border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.15)] relative overflow-hidden">
             <Cpu className="w-10 h-10 text-indigo-400 relative z-10" />
             <div className="absolute inset-0 bg-indigo-500/20 blur-xl animate-pulse"></div>
           </div>
           <div className="text-start">
-            <h3 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">{t.neuralForecast}</h3>
+            <h3 className="text-2xl md:text-4xl font-black text-white tracking-tighter uppercase italic leading-none">{t.neuralForecast}</h3>
             <div className="flex items-center gap-4 mt-3">
                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">{t.inferenceEngineLabel} v4.2</span>
                <div className="h-3 w-px bg-slate-700"></div>
@@ -171,7 +171,7 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
         <div className="xl:col-span-5 flex flex-col gap-8">
            
            {/* Main Prediction Card */}
-           <div className={`bg-slate-950/60 p-10 rounded-[3.5rem] border relative overflow-hidden transition-all duration-500 flex flex-col justify-between h-full shadow-2xl ${directionBorder}`}>
+           <div className={`bg-slate-950/60 p-6 md:p-10 rounded-[2rem] md:rounded-[3.5rem] border relative overflow-hidden transition-all duration-500 flex flex-col justify-between h-full shadow-2xl ${directionBorder}`}>
               <div className={`absolute top-0 right-0 p-12 opacity-[0.05] transition-transform duration-700 ${isUp ? 'rotate-0' : 'rotate-180'}`}>
                  <TrendingUp className={`w-64 h-64 ${directionColor}`} />
               </div>
@@ -179,7 +179,7 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
               <div>
                  <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] block mb-6">{t.targetProjection}</span>
                  <div className="flex items-baseline gap-4 mb-2">
-                    <span className={`text-6xl font-black font-mono tracking-tighter ${directionColor} drop-shadow-lg`}>
+                    <span className={`text-4xl md:text-6xl font-black font-mono tracking-tighter ${directionColor} drop-shadow-lg`}>
                        ${prediction.predictedPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
                  </div>
@@ -221,7 +221,7 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
         <div className="xl:col-span-7 flex flex-col gap-8">
            
            {/* Pattern Recognition Card */}
-           <div className="bg-slate-950/40 border border-white/5 rounded-[3.5rem] p-10 relative overflow-hidden flex flex-col shadow-lg group/pattern">
+           <div className="bg-slate-950/40 border border-white/5 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10 relative overflow-hidden flex flex-col shadow-lg group/pattern">
               <div className="flex items-center justify-between mb-8">
                  <div className="flex items-center gap-4">
                     <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
@@ -233,7 +233,7 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
               </div>
 
               <div className="relative z-10 mb-8">
-                 <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2 group-hover/pattern:text-indigo-300 transition-colors">
+                 <h3 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter mb-2 group-hover/pattern:text-indigo-300 transition-colors">
                     {prediction.patternDetected}
                  </h3>
                  <p className="text-xl font-black text-slate-500 uppercase tracking-tight" dir="rtl">
@@ -260,7 +260,7 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
            </div>
 
            {/* Ensemble Consensus Visualizer */}
-           <div className="bg-slate-950/40 border border-white/5 rounded-[3rem] p-8 relative overflow-hidden flex flex-col justify-center">
+           <div className="bg-slate-950/40 border border-white/5 rounded-[2rem] md:rounded-[3rem] p-6 md:p-8 relative overflow-hidden flex flex-col justify-center">
               <div className="flex justify-between items-center mb-6">
                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                     <GitMerge className="w-4 h-4 text-white" /> {t.ensembleVoting}
