@@ -98,7 +98,7 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
 
   if (isLoading && !analysis) {
     return (
-      <div className="bg-slate-950/40 animate-pulse space-y-8 min-h-[600px] border border-white/5 rounded-[4rem] p-12 relative overflow-hidden">
+      <div className="bg-slate-950/40 animate-pulse space-y-8 min-h-[600px] border border-white/5 rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
         <div className="flex items-center gap-6 mb-12">
            <div className="w-16 h-16 bg-slate-800/50 rounded-3xl"></div>
@@ -128,15 +128,15 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
   const isHighVol = volatilityVal > 3.0;
 
   return (
-    <div className={`cyber-card overflow-hidden transition-all duration-700 min-w-0 border-white/10 shadow-3xl rounded-[4rem] p-0 relative group ${analysis.isFallback ? 'border-amber-500/30' : ''}`}>
+    <div className={`cyber-card overflow-hidden transition-all duration-700 min-w-0 border-white/10 shadow-3xl rounded-[2.5rem] md:rounded-[4rem] p-0 relative group ${analysis.isFallback ? 'border-amber-500/30' : ''}`}>
       
       {/* Top Status Bar */}
-      <div className="bg-black/40 border-b border-white/5 px-10 py-4 flex justify-between items-center backdrop-blur-md">
+      <div className="bg-black/40 border-b border-white/5 px-6 md:px-10 py-4 flex flex-col md:flex-row justify-between items-center backdrop-blur-md gap-4">
         <div className="flex items-center gap-4">
            <Activity className="w-4 h-4 text-accent animate-pulse" />
-           <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">{t.quantumNeuralInterpretation}</span>
+           <span className="text-[9px] md:text-[10px] font-black text-muted uppercase tracking-[0.3em]">{t.quantumNeuralInterpretation}</span>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
            <div className="flex items-center gap-2">
              <Cpu className="w-3.5 h-3.5 text-slate-500" />
              <span className="text-[9px] font-mono font-bold text-slate-400">{tensorOps.toFixed(1)} T-Ops</span>
@@ -151,35 +151,35 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
         </div>
       </div>
 
-      <div className="p-10 lg:p-14 space-y-12">
+      <div className="p-6 md:p-14 space-y-12">
         
         {/* Main Signal Core */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
            
            {/* Left: Signal Hologram */}
            <div className="lg:col-span-7 relative">
-              <div className={`relative z-10 p-12 rounded-[3.5rem] border-2 border-white/5 bg-slate-900/60 backdrop-blur-xl flex flex-col items-center justify-center text-center overflow-hidden transition-all duration-500 ${sig.glow}`}>
+              <div className={`relative z-10 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] border-2 border-white/5 bg-slate-900/60 backdrop-blur-xl flex flex-col items-center justify-center text-center overflow-hidden transition-all duration-500 ${sig.glow}`}>
                  {/* Animated Scan Line */}
                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[200%] w-full animate-[scan_4s_linear_infinite] pointer-events-none"></div>
                  
                  <div className="mb-6 relative">
-                    <Target className={`w-16 h-16 ${sig.color} opacity-80`} />
+                    <Target className={`w-12 h-12 md:w-16 md:h-16 ${sig.color} opacity-80`} />
                     <div className={`absolute inset-0 ${sig.color} blur-2xl opacity-40 animate-pulse`}></div>
                  </div>
 
-                 <h2 className={`text-5xl md:text-7xl font-black italic tracking-tighter uppercase leading-none mb-4 drop-shadow-lg ${sig.color}`}>
+                 <h2 className={`text-4xl md:text-5xl lg:text-7xl font-black italic tracking-tighter uppercase leading-none mb-4 drop-shadow-lg ${sig.color}`}>
                    {t[sig.label.replace(' ', '').toLowerCase()] || sig.label}
                  </h2>
                  
                  <div className="flex items-center gap-4 mt-4 px-6 py-2 rounded-full bg-black/40 border border-white/10">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{t.neuralConsensusSignal}</span>
+                    <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{t.neuralConsensusSignal}</span>
                     <div className={`w-2 h-2 rounded-full ${sig.color} shadow-[0_0_10px_currentColor] animate-pulse`}></div>
                  </div>
               </div>
 
               {/* Live Price Context */}
               {currentPrice && (
-                <div className="mt-8 px-4">
+                <div className="mt-8 px-2 md:px-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.priceStructure}</span>
                     <span className="text-xs font-mono font-black text-white">${currentPrice.toLocaleString()}</span>
@@ -197,13 +197,13 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
            <div className="lg:col-span-5 grid grid-cols-1 gap-6">
               
               {/* Confidence Card */}
-              <div className="bg-slate-950/60 border border-white/10 p-8 rounded-[2.5rem] relative overflow-hidden">
+              <div className="bg-slate-950/60 border border-white/10 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] relative overflow-hidden">
                  <div className="flex justify-between items-start mb-6">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.engineConfidence}</span>
                     <ShieldCheck className="w-5 h-5 text-accent" />
                  </div>
                  <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-black text-white font-mono tracking-tighter">{analysis.confidence}%</span>
+                    <span className="text-4xl md:text-5xl font-black text-white font-mono tracking-tighter">{analysis.confidence}%</span>
                     <span className="text-[10px] font-black text-accent uppercase tracking-widest">High Fidelity</span>
                  </div>
                  <div className="mt-4 h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
@@ -212,20 +212,20 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
               </div>
 
               {/* Sentiment Score */}
-              <div className="bg-slate-950/60 border border-white/10 p-8 rounded-[2.5rem] relative overflow-hidden">
+              <div className="bg-slate-950/60 border border-white/10 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] relative overflow-hidden">
                  <div className="flex justify-between items-start mb-6">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.aiSentimentScore}</span>
                     <Brain className="w-5 h-5 text-gold" />
                  </div>
                  <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-black text-white font-mono tracking-tighter">{analysis.score}</span>
+                    <span className="text-4xl md:text-5xl font-black text-white font-mono tracking-tighter">{analysis.score}</span>
                     <span className="text-[10px] font-black text-gold uppercase tracking-widest">/ 100</span>
                  </div>
                  <NeuralActivityChart />
               </div>
 
               {/* Volatility */}
-              <div className={`bg-slate-950/60 border p-8 rounded-[2.5rem] relative overflow-hidden transition-colors ${isHighVol ? 'border-rose-500/30' : 'border-white/10'}`}>
+              <div className={`bg-slate-950/60 border p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] relative overflow-hidden transition-colors ${isHighVol ? 'border-rose-500/30' : 'border-white/10'}`}>
                  <div className="flex justify-between items-start mb-4">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.volatilityIndex}</span>
                     <Zap className={`w-5 h-5 ${isHighVol ? 'text-rose-500' : 'text-emerald-400'}`} />
@@ -242,31 +242,31 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
         </div>
 
         {/* Tabbed Intelligence Section */}
-        <div className="bg-black/20 border-2 border-white/5 rounded-[3.5rem] overflow-hidden">
+        <div className="bg-black/20 border-2 border-white/5 rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden">
            {/* Tab Headers */}
-           <div className="flex border-b border-white/5">
+           <div className="flex flex-col md:flex-row border-b border-white/5">
               <button 
                 onClick={() => setActiveTab('reasoning')}
-                className={`flex-1 py-5 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${activeTab === 'reasoning' ? 'bg-accent/10 text-accent border-b-2 border-accent' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                className={`flex-1 py-4 md:py-5 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${activeTab === 'reasoning' ? 'bg-accent/10 text-accent border-b-2 border-accent' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
               >
                 <Languages className="w-4 h-4" /> {t.forensicLogicSummary}
               </button>
               <button 
                 onClick={() => setActiveTab('zones')}
-                className={`flex-1 py-5 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${activeTab === 'zones' ? 'bg-accent/10 text-accent border-b-2 border-accent' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                className={`flex-1 py-4 md:py-5 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${activeTab === 'zones' ? 'bg-accent/10 text-accent border-b-2 border-accent' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
               >
                 <Crosshair className="w-4 h-4" /> {t.liquidationZones}
               </button>
               <button 
                 onClick={() => setActiveTab('levels')}
-                className={`flex-1 py-5 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${activeTab === 'levels' ? 'bg-accent/10 text-accent border-b-2 border-accent' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                className={`flex-1 py-4 md:py-5 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${activeTab === 'levels' ? 'bg-accent/10 text-accent border-b-2 border-accent' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
               >
                 <Layers className="w-4 h-4" /> {t.structuralLiquidityZones}
               </button>
            </div>
 
            {/* Tab Content */}
-           <div className="p-10 min-h-[300px]">
+           <div className="p-6 md:p-10 min-h-[300px]">
               
               {activeTab === 'reasoning' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10 animate-[fadeIn_0.5s_ease-out]">
@@ -275,7 +275,7 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
                         <Radio className="w-3 h-3 text-accent" />
                         <span className="text-[9px] font-black text-muted uppercase tracking-widest">{t.arabicLog}</span>
                       </div>
-                      <p className="text-lg text-text-bright font-bold leading-relaxed italic opacity-90">
+                      <p className="text-base md:text-lg text-text-bright font-bold leading-relaxed italic opacity-90">
                         "{analysis.reasoningAr}"
                       </p>
                    </div>
@@ -284,7 +284,7 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
                         <Radio className="w-3 h-3 text-accent" />
                         <span className="text-[9px] font-black text-muted uppercase tracking-widest">{t.englishLog}</span>
                       </div>
-                      <p className="text-lg text-text-bright font-bold leading-relaxed italic opacity-90">
+                      <p className="text-base md:text-lg text-text-bright font-bold leading-relaxed italic opacity-90">
                         "{analysis.reasoningEn}"
                       </p>
                    </div>
@@ -297,7 +297,7 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
                      const proximity = currentPrice ? Math.abs(currentPrice - zone.price) / currentPrice : 1;
                      const isClose = proximity < 0.02;
                      return (
-                       <div key={i} className={`flex items-center justify-between p-6 rounded-3xl border transition-all ${isClose ? 'bg-accent/10 border-accent/40 shadow-[0_0_20px_rgba(59,130,246,0.15)]' : 'bg-slate-900/50 border-white/5'}`}>
+                       <div key={i} className={`flex flex-col md:flex-row items-start md:items-center justify-between p-6 rounded-3xl border transition-all gap-4 ${isClose ? 'bg-accent/10 border-accent/40 shadow-[0_0_20px_rgba(59,130,246,0.15)]' : 'bg-slate-900/50 border-white/5'}`}>
                           <div className="flex items-center gap-6">
                              <div className={`p-3 rounded-2xl ${zone.type === 'SHORT' ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
                                 <AlertTriangle className="w-5 h-5" />
@@ -307,7 +307,7 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
                                 <span className="text-2xl font-black text-white font-mono tracking-tighter">${zone.price.toLocaleString()}</span>
                              </div>
                           </div>
-                          <div className="text-right">
+                          <div className="w-full md:w-auto text-left md:text-right border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
                              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">{t.estLiqVolume}</span>
                              <span className="text-lg font-black font-mono text-white">{zone.volume.toLocaleString()}</span>
                           </div>
@@ -322,7 +322,7 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
 
               {activeTab === 'levels' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-[fadeIn_0.5s_ease-out]">
-                   <div className="bg-emerald-500/5 border border-emerald-500/10 p-8 rounded-[2.5rem] relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+                   <div className="bg-emerald-500/5 border border-emerald-500/10 p-8 rounded-[2rem] md:rounded-[2.5rem] relative overflow-hidden group hover:border-emerald-500/30 transition-all">
                       <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform">
                         <TrendingUp className="w-24 h-24 text-emerald-500" />
                       </div>
@@ -337,7 +337,7 @@ const TradeXrayAI: React.FC<TradeXrayAIProps> = ({ analysis, isLoading, t, curre
                       </div>
                    </div>
 
-                   <div className="bg-rose-500/5 border border-rose-500/10 p-8 rounded-[2.5rem] relative overflow-hidden group hover:border-rose-500/30 transition-all">
+                   <div className="bg-rose-500/5 border border-rose-500/10 p-8 rounded-[2rem] md:rounded-[2.5rem] relative overflow-hidden group hover:border-rose-500/30 transition-all">
                       <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform">
                         <TrendingDown className="w-24 h-24 text-rose-500" />
                       </div>

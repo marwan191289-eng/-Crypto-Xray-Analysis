@@ -5,7 +5,7 @@ import {
   TrendingUp, Ship, Database, Brain, Settings, Cpu, ShieldCheck, 
   Terminal, Lock, ChevronRight, Clock, 
   Network, Wifi, Shield, Fingerprint, Award, Layers, ScanText,
-  RefreshCw
+  RefreshCw, Menu, X
 } from 'lucide-react';
 import { MarketData, BlockchainStats, AIAnalysis, MLPrediction, WhaleBearMetrics, OnChainMetrics, SocialMetrics } from './types';
 import { translations, Language } from './translations';
@@ -111,7 +111,6 @@ const App: React.FC = () => {
       }));
       
       setMarkets(prev => {
-        // Simple optimization to avoid update if deep equal, but for now just set
         return updatedMarkets;
       });
 
@@ -156,12 +155,8 @@ const App: React.FC = () => {
     setIsMLRunning(true);
     
     try {
-      // Execute sequentially to reduce rate limit (429) potential
       const aiResult = await analyzeMarket(currentMarket);
-      
-      // Slight delay to be gentle on quota
       await new Promise(r => setTimeout(r, 300));
-      
       const mlResult = await runMLInference(currentMarket);
 
       setAiAnalysis(aiResult);
@@ -174,20 +169,17 @@ const App: React.FC = () => {
     }
   }, [currentMarket, isAnalyzing, isMLRunning]);
 
-  // Initial and periodic data fetch
   useEffect(() => {
     updateMarketData();
     const interval = setInterval(updateMarketData, 30000);
     return () => clearInterval(interval);
   }, [updateMarketData]);
 
-  // Reset analysis on symbol change
   useEffect(() => {
     setAiAnalysis(undefined);
     setMlPrediction(undefined);
   }, [selectedSymbol]);
 
-  // Trigger AI refresh only when data is available and analysis is missing
   useEffect(() => {
     if (currentMarket && !aiAnalysis && !mlPrediction && !isAnalyzing && !isMLRunning) {
       handleRefreshAI();
@@ -215,6 +207,7 @@ const App: React.FC = () => {
 
   return (
     <div className="h-screen bg-transparent text-text-bright flex overflow-hidden relative z-10">
+      {/* DESKTOP SIDEBAR */}
       <aside className="w-[300px] bg-bg/70 border-r border-white/5 backdrop-blur-3xl hidden lg:flex flex-col p-8 z-50 flex-shrink-0">
         <div className="mb-14">
           <div className="flex items-center gap-5 mb-4 cursor-pointer group" onClick={() => scrollToSection('dashboard', dashboardRef)}>
@@ -248,7 +241,7 @@ const App: React.FC = () => {
           ))}
         </nav>
 
-        {/* SIDEBAR BADGE - UPGRADED */}
+        {/* SIDEBAR BADGE */}
         <div 
           className="mt-10 relative p-6 rounded-[2rem] cursor-pointer group overflow-hidden border border-gold/10 hover:border-gold/30 transition-all duration-500 bg-gradient-to-b from-slate-900/50 to-black/50 reveal-anim" 
           style={{ animationDelay: '0.8s' }} 
@@ -278,9 +271,10 @@ const App: React.FC = () => {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <header className="min-h-[110px] bg-bg/40 backdrop-blur-3xl header-glow-border flex flex-col z-40">
-          <div className="bg-black/30 px-12 py-2 flex justify-between items-center border-b border-white/5">
-             <div className="flex items-center gap-8">
+        <header className="bg-bg/40 backdrop-blur-3xl header-glow-border flex flex-col z-40 border-b border-white/5">
+          {/* Top Bar: Status - Now Visible on Mobile */}
+          <div className="bg-black/30 px-4 md:px-12 py-2 flex flex-col md:flex-row justify-between items-center border-b border-white/5 gap-2">
+             <div className="flex items-center gap-4 md:gap-8 flex-wrap justify-center">
                 <div className="flex items-center gap-3">
                    <Wifi className="w-3.5 h-3.5 text-success" />
                    <span className="text-[9px] font-black text-muted uppercase tracking-widest">{t.globalNodeStatus}: <span className="text-success">{t.nodeLocation}</span></span>
@@ -298,40 +292,39 @@ const App: React.FC = () => {
              </div>
           </div>
 
-          <div className="flex-1 flex items-center justify-between px-12 py-4 gap-8">
-            <div className="flex items-center gap-10 flex-1 min-w-0">
-              <div className="flex flex-col text-start min-w-0">
+          {/* Main Header - Consistent on Mobile */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between px-4 md:px-12 py-4 gap-4 md:gap-8">
+            <div className="flex items-center justify-between md:justify-start gap-4 md:gap-10 flex-1 min-w-0">
+              
+              <div className="flex flex-col text-start min-w-0 w-full md:w-auto">
                  <span className="text-[9px] font-black text-accent uppercase tracking-[0.5em] mb-2 italic opacity-60 flex items-center gap-2">
                     <Target className="w-3 h-3" /> {t.targetIdentity}
                  </span>
-                 <div className="flex items-center gap-5">
-                   <div className="relative group overflow-hidden px-10 py-4 bg-white/5 rounded-2xl border border-white/10 text-2xl font-black text-white font-mono shadow-inner hover:border-accent/50 transition-all cursor-crosshair">
+                 <div className="flex items-center gap-5 justify-between md:justify-start">
+                   <div className="relative group overflow-hidden px-6 md:px-10 py-3 md:py-4 bg-white/5 rounded-2xl border border-white/10 text-xl md:text-2xl font-black text-white font-mono shadow-inner hover:border-accent/50 transition-all cursor-crosshair flex-1 md:flex-none text-center md:text-left">
                      <div className="scanner-line"></div>
                      {selectedSymbol}/USDT
                    </div>
-                   <div className="hidden sm:flex items-center gap-4 px-5 py-2.5 bg-success/10 rounded-xl border border-success/20 shadow-lg">
+                   <div className="flex items-center gap-4 px-3 md:px-5 py-2.5 bg-success/10 rounded-xl border border-success/20 shadow-lg">
                       <div className="status-pulse" />
-                      <span className="text-[11px] font-black text-success uppercase italic tracking-widest">{t.liveFeed}</span>
+                      <span className="text-[9px] md:text-[11px] font-black text-success uppercase italic tracking-widest">{t.liveFeed}</span>
                    </div>
                  </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-6 flex-shrink-0 flex-wrap justify-end">
+            <div className="flex items-center gap-3 md:gap-6 flex-shrink-0 flex-wrap justify-end">
               
-              {/* HEADER BADGE - UPGRADED */}
+              {/* HEADER BADGE - Visible on large screens */}
               <div 
-                className="relative px-6 py-3 rounded-2xl flex items-center gap-4 bg-slate-950/80 border border-gold/20 shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:border-gold/50 hover:shadow-[0_0_25px_rgba(212,175,55,0.2)] transition-all cursor-pointer group overflow-hidden"
+                className="hidden xl:flex relative px-6 py-3 rounded-2xl items-center gap-4 bg-slate-950/80 border border-gold/20 shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:border-gold/50 hover:shadow-[0_0_25px_rgba(212,175,55,0.2)] transition-all cursor-pointer group overflow-hidden"
                 onClick={() => handleLinkClick(t.builtByMarwan)}
               >
-                  {/* Scanning Effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gold/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                  
                   <div className="relative p-2 bg-gold/10 rounded-xl border border-gold/20">
                       <Fingerprint className="w-5 h-5 text-gold" />
                       <div className="absolute inset-0 bg-gold/20 blur-md rounded-full opacity-50 animate-pulse"></div>
                   </div>
-                  
                   <div className="flex flex-col text-start z-10">
                       <span className="text-[11px] text-white font-black italic tracking-widest uppercase">{t.builtByMarwan}</span>
                       <div className="flex items-center gap-1.5">
@@ -345,28 +338,28 @@ const App: React.FC = () => {
               <button 
                 onClick={handleGlobalRefresh}
                 disabled={isRefreshing}
-                className="relative p-3.5 rounded-2xl bg-slate-900/50 border border-white/10 hover:border-accent/50 hover:bg-accent/10 transition-all group overflow-hidden"
+                className="relative p-3 rounded-xl md:p-3.5 md:rounded-2xl bg-slate-900/50 border border-white/10 hover:border-accent/50 hover:bg-accent/10 transition-all group overflow-hidden"
                 title={t.terminalSync}
               >
                 <div className={`absolute inset-0 bg-accent/20 blur-xl transition-opacity duration-500 ${isRefreshing ? 'opacity-100' : 'opacity-0'}`}></div>
-                <RefreshCw className={`w-5 h-5 text-slate-400 group-hover:text-accent transition-colors ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 md:w-5 md:h-5 text-slate-400 group-hover:text-accent transition-colors ${isRefreshing ? 'animate-spin' : ''}`} />
               </button>
 
-              <div className="flex bg-black/50 rounded-2xl border border-white/10 p-1.5 shadow-xl">
-                <button onClick={() => setLang('en')} className={`px-5 py-2.5 rounded-xl text-[11px] font-black transition-all ${lang === 'en' ? 'bg-accent text-white shadow-lg' : 'text-muted hover:text-white'}`}>EN</button>
-                <button onClick={() => setLang('ar')} className={`px-5 py-2.5 rounded-xl text-[11px] font-black transition-all ${lang === 'ar' ? 'bg-accent text-white shadow-lg' : 'text-muted hover:text-white'}`}>AR</button>
+              <div className="flex bg-black/50 rounded-2xl border border-white/10 p-1 shadow-xl">
+                <button onClick={() => setLang('en')} className={`px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-[10px] md:text-[11px] font-black transition-all ${lang === 'en' ? 'bg-accent text-white shadow-lg' : 'text-muted hover:text-white'}`}>EN</button>
+                <button onClick={() => setLang('ar')} className={`px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-[10px] md:text-[11px] font-black transition-all ${lang === 'ar' ? 'bg-accent text-white shadow-lg' : 'text-muted hover:text-white'}`}>AR</button>
               </div>
 
               <button 
                 onClick={handleRefreshAI}
                 disabled={isAnalyzing || isMLRunning}
-                className={`fusion-btn-xray px-10 py-5 rounded-[2.5rem] text-white flex items-center gap-5 disabled:opacity-50 group transition-all shadow-glow shadow-accent/40`}
+                className={`fusion-btn-xray px-6 py-3 md:px-10 md:py-5 rounded-[2rem] md:rounded-[2.5rem] text-white flex items-center gap-3 md:gap-5 disabled:opacity-50 group transition-all shadow-glow shadow-accent/40`}
               >
                 <div className="relative">
-                  <Layers className={`w-6 h-6 ${isAnalyzing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-700'}`} />
+                  <Layers className={`w-5 h-5 md:w-6 md:h-6 ${isAnalyzing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-700'}`} />
                   <div className="absolute inset-0 bg-white/30 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <span className="text-[14px] font-black uppercase tracking-[0.4em] whitespace-nowrap italic">{t.xRayAnalysis}</span>
+                <span className="text-[10px] md:text-[14px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] whitespace-nowrap italic">{t.xRayAnalysis}</span>
                 <div className="scanner-beam"></div>
               </button>
             </div>
@@ -374,29 +367,29 @@ const App: React.FC = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto custom-scrollbar relative" ref={dashboardRef}>
-          <div className="p-10 md:p-14 space-y-20 pb-24">
+          <div className="p-4 md:p-8 lg:p-14 space-y-12 md:space-y-20 pb-32 md:pb-24">
             
             {/* New Market Overview Header Replacing Old Cards */}
             <MarketOverviewHeader stats={stats} aiAnalysis={aiAnalysis} t={t} />
 
-            <div className="flex flex-col gap-24 w-full max-w-screen-2xl mx-auto min-w-0">
-              <div ref={marketsRef} className="flex flex-col gap-10 w-full reveal-anim" style={{ animationDelay: '0.2s' }}>
-                <div className="cyber-card p-10 rounded-[4rem] text-start border-white/10 shadow-3xl bg-bg/40 backdrop-blur-xl relative overflow-hidden">
+            <div className="flex flex-col gap-12 md:gap-24 w-full max-w-screen-2xl mx-auto min-w-0">
+              <div ref={marketsRef} className="flex flex-col gap-6 md:gap-10 w-full reveal-anim" style={{ animationDelay: '0.2s' }}>
+                <div className="cyber-card p-6 md:p-10 rounded-[2rem] md:rounded-[4rem] text-start border-white/10 shadow-3xl bg-bg/40 backdrop-blur-xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-10 opacity-5">
                      <Globe className="w-64 h-64 text-accent" />
                   </div>
 
-                  <div className="flex items-center gap-6 mb-10 text-muted border-b border-white/5 pb-8 relative z-10">
-                    <div className="p-4 bg-accent/10 rounded-2xl border border-accent/20">
-                      <Globe className="w-8 h-8 text-accent animate-pulse" />
+                  <div className="flex items-center gap-4 md:gap-6 mb-6 md:mb-10 text-muted border-b border-white/5 pb-4 md:pb-8 relative z-10">
+                    <div className="p-3 md:p-4 bg-accent/10 rounded-xl md:rounded-2xl border border-accent/20">
+                      <Globe className="w-6 h-6 md:w-8 md:h-8 text-accent animate-pulse" />
                     </div>
                     <div>
-                      <span className="text-[14px] font-black uppercase tracking-[0.5em] italic text-white block">{t.institutionalAssetSelector}</span>
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mt-2 block">Global Liquidity Nodes</span>
+                      <span className="text-[11px] md:text-[14px] font-black uppercase tracking-[0.3em] md:tracking-[0.5em] italic text-white block">{t.institutionalAssetSelector}</span>
+                      <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-slate-500 mt-1 md:mt-2 block">Global Liquidity Nodes</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 relative z-10">
                     {WATCHED_SYMBOLS.map(s => {
                       const m = markets.find(market => market.symbol === s);
                       const price = m?.price || 0;
@@ -408,7 +401,7 @@ const App: React.FC = () => {
                           key={s} 
                           onClick={() => setSelectedSymbol(s)} 
                           className={`
-                            relative p-6 rounded-[2.5rem] border-2 transition-all duration-300 group overflow-hidden text-start
+                            relative p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] border-2 transition-all duration-300 group overflow-hidden text-start
                             ${selectedSymbol === s 
                               ? 'bg-accent/10 border-accent shadow-[0_0_30px_rgba(59,130,246,0.2)]' 
                               : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20'
@@ -419,17 +412,17 @@ const App: React.FC = () => {
                           {selectedSymbol === s && <div className="absolute inset-0 bg-accent/5 animate-pulse"></div>}
 
                           <div className="flex items-center justify-between mb-4 relative z-10">
-                            <div className="flex items-center gap-4">
-                               <div className="w-10 h-10 rounded-full bg-white p-1.5 shadow-lg flex items-center justify-center">
+                            <div className="flex items-center gap-3 md:gap-4">
+                               <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white p-1.5 shadow-lg flex items-center justify-center">
                                   <img src={COIN_LOGOS[s]} alt={s} className="w-full h-full object-contain" />
-                                </div>
+                               </div>
                                <div>
-                                  <span className="text-[12px] font-black text-white tracking-widest block">{s}</span>
-                                  <span className="text-[9px] font-bold text-slate-500 tracking-wider">USDT</span>
+                                  <span className="text-[10px] md:text-[12px] font-black text-white tracking-widest block">{s}</span>
+                                  <span className="text-[8px] md:text-[9px] font-bold text-slate-500 tracking-wider">USDT</span>
                                </div>
                             </div>
                             <div className={`
-                               px-3 py-1 rounded-lg text-[9px] font-black border backdrop-blur-md
+                               px-2 py-0.5 md:px-3 md:py-1 rounded-lg text-[9px] font-black border backdrop-blur-md
                                ${isUp ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}
                             `}>
                                {isUp ? '+' : ''}{change.toFixed(2)}%
@@ -437,7 +430,7 @@ const App: React.FC = () => {
                           </div>
 
                           <div className="relative z-10">
-                             <span className="text-2xl font-black font-mono text-white tracking-tighter block">
+                             <span className="text-xl md:text-2xl font-black font-mono text-white tracking-tighter block">
                                ${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                              </span>
                              <div className="w-full h-1 bg-slate-800 rounded-full mt-4 overflow-hidden">
@@ -449,7 +442,7 @@ const App: React.FC = () => {
                     })}
                   </div>
                 </div>
-                <div className="cyber-card rounded-[4rem] p-8 relative min-h-[750px] w-full shadow-5xl border-white/10">
+                <div className="cyber-card rounded-[2rem] md:rounded-[4rem] p-4 md:p-8 relative min-h-[450px] md:min-h-[750px] w-full shadow-5xl border-white/10">
                   {currentMarket && <MarketChart data={currentMarket} analysis={aiAnalysis} t={t} />}
                 </div>
               </div>
@@ -503,7 +496,7 @@ const App: React.FC = () => {
                 {currentMarket && <MachineLearningPredictor prediction={mlPrediction} isLoading={isMLRunning} currentPrice={currentMarket.price} t={t} onValidate={handleRefreshAI} />}
               </div>
               
-              <div className="w-full grid grid-cols-1 xl:grid-cols-2 gap-12 reveal-anim" style={{ animationDelay: '1.4s' }}>
+              <div className="w-full grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-12 reveal-anim" style={{ animationDelay: '1.4s' }}>
                  {currentMarket && <OrderBook price={currentMarket.price} symbol={currentMarket.symbol} t={t} />}
                  {currentMarket && <DepthChart price={currentMarket.price} t={t} />}
               </div>
@@ -514,29 +507,29 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <footer className="footer-horizon pt-32 pb-20 px-16 z-40 overflow-hidden">
-             <div className="max-w-screen-2xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-20 mb-32 text-start">
+          <footer className="footer-horizon pt-16 md:pt-32 pb-32 px-6 md:px-16 z-40 overflow-hidden">
+             <div className="max-w-screen-2xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-20 mb-16 md:mb-32 text-start">
                 <div className="col-span-1 md:col-span-2">
-                   <div className="flex items-center gap-8 mb-10 cursor-pointer group" onClick={() => scrollToSection('dashboard', dashboardRef)}>
-                      <div className="w-20 h-20 fusion-btn-xray rounded-3xl flex items-center justify-center shadow-4xl">
-                         <Eye className="w-10 h-10 text-white" />
+                   <div className="flex items-center gap-6 md:gap-8 mb-8 md:mb-10 cursor-pointer group" onClick={() => scrollToSection('dashboard', dashboardRef)}>
+                      <div className="w-16 h-16 md:w-20 md:h-20 fusion-btn-xray rounded-3xl flex items-center justify-center shadow-4xl">
+                         <Eye className="w-8 h-8 md:w-10 md:h-10 text-white" />
                          <div className="scanner-beam"></div>
                       </div>
                       <div>
-                         <h2 className="text-4xl leading-none hologram-title">
+                         <h2 className="text-3xl md:text-4xl leading-none hologram-title">
                            {t.appNamePart1} <span className="text-accent">{t.appNameAccent}</span>{t.appNameSuffix}
                          </h2>
                          <div className="mt-4 flex items-center gap-3">
                             <ScanText className="w-4 h-4 text-accent opacity-5" />
-                            <span className="slogan-xray text-[13px]" data-text={t.seeInside}>{t.seeInside}</span>
+                            <span className="slogan-xray text-[11px] md:text-[13px]" data-text={t.seeInside}>{t.seeInside}</span>
                          </div>
                       </div>
                    </div>
-                   <p className="text-[16px] text-muted leading-relaxed font-bold opacity-60 max-w-lg uppercase italic tracking-widest">{t.footerDesc}</p>
+                   <p className="text-[14px] md:text-[16px] text-muted leading-relaxed font-bold opacity-60 max-w-lg uppercase italic tracking-widest">{t.footerDesc}</p>
                 </div>
 
                 <div>
-                   <h4 className="text-[13px] font-black text-white uppercase tracking-[0.5em] mb-12 italic flex items-center gap-4 border-b border-white/5 pb-6"><Terminal className="w-6 h-6 text-accent" /> {t.intelHub}</h4>
+                   <h4 className="text-[13px] font-black text-white uppercase tracking-[0.5em] mb-8 md:mb-12 italic flex items-center gap-4 border-b border-white/5 pb-6"><Terminal className="w-6 h-6 text-accent" /> {t.intelHub}</h4>
                    <ul className="space-y-6 text-[12px] font-black text-muted uppercase tracking-[0.2em] italic">
                       <li onClick={() => handleLinkClick(t.forensicStreams)} className="hover:text-accent cursor-pointer transition-colors flex items-center gap-4 group"><ChevronRight className="w-5 h-5 group-hover:translate-x-3 transition-transform" /> {t.forensicStreams}</li>
                       <li onClick={() => handleLinkClick(t.neuralDocs)} className="hover:text-accent cursor-pointer transition-colors flex items-center gap-4 group"><ChevronRight className="w-5 h-5 group-hover:translate-x-3 transition-transform" /> {t.neuralDocs}</li>
@@ -544,7 +537,7 @@ const App: React.FC = () => {
                 </div>
 
                 <div>
-                   <h4 className="text-[13px] font-black text-white uppercase tracking-[0.5em] mb-12 italic flex items-center gap-4 border-b border-white/5 pb-6"><Lock className="w-6 h-6 text-success" /> {t.securityProtocols}</h4>
+                   <h4 className="text-[13px] font-black text-white uppercase tracking-[0.5em] mb-8 md:mb-12 italic flex items-center gap-4 border-b border-white/5 pb-6"><Lock className="w-6 h-6 text-success" /> {t.securityProtocols}</h4>
                    <div className="space-y-8">
                       <div className="flex items-center gap-6 cursor-pointer hover:bg-white/5 p-5 rounded-3xl border border-white/10 transition-all shadow-inner" onClick={() => handleLinkClick(t.g8Encryption)}>
                          <Shield className="w-6 h-6 text-success" />
@@ -557,38 +550,35 @@ const App: React.FC = () => {
              <div className="max-w-screen-2xl mx-auto pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-12">
                 <div className="flex items-center gap-4">
                    <Network className="w-5 h-5 text-muted opacity-40" />
-                   <span className="text-[12px] font-black text-muted uppercase tracking-[0.6em] italic">© 2025 BULLBEAREYE XRAY. {t.forensicNode}</span>
+                   <span className="text-[10px] md:text-[12px] font-black text-muted uppercase tracking-[0.4em] md:tracking-[0.6em] italic text-center md:text-left">© 2025 BULLBEAREYE XRAY. {t.forensicNode}</span>
                 </div>
                 
                 {/* FOOTER BADGE - UPGRADED */}
                 <div 
                     onClick={() => handleLinkClick(t.devContact)} 
-                    className="group relative flex items-center gap-8 px-10 py-6 rounded-[3rem] cursor-pointer border border-gold/20 bg-slate-950/50 hover:bg-slate-900/80 hover:border-gold/50 transition-all duration-500 hover:shadow-[0_0_40px_rgba(212,175,55,0.15)] overflow-hidden"
+                    className="group relative flex items-center gap-6 md:gap-8 px-8 md:px-10 py-5 md:py-6 rounded-[3rem] cursor-pointer border border-gold/20 bg-slate-950/50 hover:bg-slate-900/80 hover:border-gold/50 transition-all duration-500 hover:shadow-[0_0_40px_rgba(212,175,55,0.15)] overflow-hidden w-full md:w-auto"
                 >
-                    {/* Animated background noise */}
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
-                    
-                    {/* Animated Border Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl"></div>
 
-                    <div className="relative p-4 bg-gradient-to-br from-gold/20 to-amber-900/20 rounded-2xl border border-gold/30 shadow-[0_0_20px_rgba(212,175,55,0.2)] group-hover:rotate-6 transition-transform duration-500">
-                        <Award className="w-8 h-8 text-gold drop-shadow-md" />
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-gold rounded-full animate-ping"></div>
+                    <div className="relative p-3 md:p-4 bg-gradient-to-br from-gold/20 to-amber-900/20 rounded-2xl border border-gold/30 shadow-[0_0_20px_rgba(212,175,55,0.2)] group-hover:rotate-6 transition-transform duration-500">
+                        <Award className="w-6 h-6 md:w-8 md:h-8 text-gold drop-shadow-md" />
+                        <div className="absolute -top-1 -right-1 w-2 h-2 md:w-3 md:h-3 bg-gold rounded-full animate-ping"></div>
                     </div>
                     
                     <div className="flex flex-col text-start relative z-10">
-                        <span className="text-[10px] font-bold text-gold/60 uppercase tracking-[0.6em] mb-1">Developed By</span>
-                        <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gold to-white uppercase tracking-wider italic">
+                        <span className="text-[8px] md:text-[10px] font-bold text-gold/60 uppercase tracking-[0.4em] md:tracking-[0.6em] mb-1">Developed By</span>
+                        <span className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gold to-white uppercase tracking-wider italic">
                             {t.builtByMarwan}
                         </span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.4em] mt-2 group-hover:text-gold transition-colors">
+                        <span className="text-[8px] md:text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] mt-1 md:mt-2 group-hover:text-gold transition-colors">
                             Chief Quant Architect G8
                         </span>
                     </div>
                     
-                    <div className="h-12 w-px bg-white/10 mx-2 relative z-10 group-hover:bg-gold/30 transition-colors"></div>
+                    <div className="hidden md:block h-12 w-px bg-white/10 mx-2 relative z-10 group-hover:bg-gold/30 transition-colors"></div>
                     
-                    <div className="flex gap-1.5 relative z-10">
+                    <div className="hidden md:flex gap-1.5 relative z-10">
                         {[1,2,3,4,5].map((i) => (
                             <div 
                                 key={i} 
@@ -603,6 +593,20 @@ const App: React.FC = () => {
              </div>
           </footer>
         </main>
+        
+        {/* MOBILE NAVIGATION BAR */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-white/10 p-2 z-50 flex justify-around items-center safe-area-pb shadow-2xl">
+          {sidebarItems.slice(0, 5).map((item) => (
+             <button 
+                key={item.id}
+                onClick={() => scrollToSection(item.id, item.ref)}
+                className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${activeTab === item.id ? 'text-accent' : 'text-slate-500'}`}
+             >
+               <item.icon className={`w-5 h-5 ${activeTab === item.id ? 'scale-110 drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]' : ''}`} />
+               <span className="text-[9px] font-black uppercase tracking-wider">{item.label.split(' ')[0]}</span>
+             </button>
+          ))}
+        </div>
       </div>
     </div>
   );

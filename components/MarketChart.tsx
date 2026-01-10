@@ -44,7 +44,7 @@ const MarketChart: React.FC<MarketChartProps> = ({ data, t }) => {
   }, [data.symbol]);
 
   return (
-    <div className="w-full h-[650px] relative rounded-[3.5rem] overflow-hidden border border-white/5 shadow-2xl bg-[#010204] group">
+    <div className="w-full h-[450px] md:h-[650px] relative rounded-[2rem] md:rounded-[3.5rem] overflow-hidden border border-white/5 shadow-2xl bg-[#010204] group">
       {/* Decorative Header Overlay for Forensic Feel */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 z-10 opacity-50 group-hover:opacity-100 transition-opacity"></div>
       

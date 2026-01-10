@@ -83,7 +83,7 @@ const WhaleBearForensics: React.FC<Props> = ({ metrics, whaleTx, symbol, isLoadi
 
   if (isLoading || !metrics) {
     return (
-      <div className="bg-slate-950/40 rounded-[4rem] p-12 border border-white/5 animate-pulse min-h-[600px]">
+      <div className="bg-slate-950/40 rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 border border-white/5 animate-pulse min-h-[600px]">
         <div className="h-10 w-64 bg-slate-800 rounded-2xl mb-12" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           <div className="h-80 bg-slate-800 rounded-[3rem]" />
@@ -102,7 +102,7 @@ const WhaleBearForensics: React.FC<Props> = ({ metrics, whaleTx, symbol, isLoadi
   };
 
   return (
-    <div className="cyber-card rounded-[4rem] p-12 border border-white/5 relative overflow-hidden group">
+    <div className="cyber-card rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 border border-white/5 relative overflow-hidden group">
       {/* Background Ambience */}
       <div className="absolute top-0 right-0 p-12 opacity-[0.02] pointer-events-none group-hover:scale-110 transition-transform duration-1000">
         <Ship className="w-96 h-96 text-indigo-400" />
@@ -110,14 +110,14 @@ const WhaleBearForensics: React.FC<Props> = ({ metrics, whaleTx, symbol, isLoadi
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 mix-blend-soft-light pointer-events-none"></div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-12 relative z-10">
+      <div className="flex flex-col md:flex-row items-center justify-between mb-12 relative z-10 gap-6">
         <div className="flex items-center gap-6">
           <div className="p-5 bg-indigo-500/10 rounded-3xl border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.15)] relative overflow-hidden">
             <Anchor className="w-8 h-8 text-indigo-400 relative z-10" />
             <div className="absolute inset-0 bg-indigo-500/20 blur-xl animate-pulse"></div>
           </div>
           <div>
-            <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic leading-none">{t.whaleBearMatrix}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase italic leading-none">{t.whaleBearMatrix}</h3>
             <div className="flex items-center gap-3 mt-3">
                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">{t.smartMoneyNetflow}</span>
                <div className="h-px w-8 bg-slate-700"></div>
@@ -128,7 +128,7 @@ const WhaleBearForensics: React.FC<Props> = ({ metrics, whaleTx, symbol, isLoadi
           </div>
         </div>
         
-        <div className="hidden xl:flex items-center gap-4 bg-slate-950/50 px-6 py-3 rounded-2xl border border-white/5">
+        <div className="flex items-center gap-4 bg-slate-950/50 px-6 py-3 rounded-2xl border border-white/5">
            <div className="flex flex-col items-end">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Whale Dominance</span>
               <span className={`text-sm font-black font-mono ${pressure > 50 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -145,13 +145,13 @@ const WhaleBearForensics: React.FC<Props> = ({ metrics, whaleTx, symbol, isLoadi
         <div className="xl:col-span-2 flex flex-col gap-10">
            
            {/* Netflow Chart */}
-           <div className="bg-slate-950/40 p-10 rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden group/chart">
+           <div className="bg-slate-950/40 p-6 md:p-10 rounded-[2rem] md:rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden group/chart">
               <div className="flex justify-between items-start mb-8">
                  <div>
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">{t.exchangeInventory}</span>
-                    <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter">{t.exchangeNetflow}</h4>
+                    <h4 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tighter">{t.exchangeNetflow}</h4>
                  </div>
-                 <div className="flex gap-4">
+                 <div className="flex flex-col md:flex-row gap-2 md:gap-4">
                     <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                        <span className="text-[9px] font-black text-emerald-400 uppercase">Outflow (Bullish)</span>
@@ -213,7 +213,7 @@ const WhaleBearForensics: React.FC<Props> = ({ metrics, whaleTx, symbol, isLoadi
            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               
               {/* Pressure Gauge */}
-              <div className="bg-slate-950/40 p-8 rounded-[3rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center text-center">
+              <div className="bg-slate-950/40 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center text-center">
                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest absolute top-8 left-8">{t.whaleBias}</span>
                  
                  <div className="relative w-64 h-32 mt-8 overflow-hidden">
@@ -244,12 +244,12 @@ const WhaleBearForensics: React.FC<Props> = ({ metrics, whaleTx, symbol, isLoadi
               </div>
 
               {/* Wyckoff Phase */}
-              <div className="bg-slate-950/40 p-8 rounded-[3rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col justify-center">
+              <div className="bg-slate-950/40 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col justify-center">
                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent pointer-events-none"></div>
                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">{t.wyckoffAnalysis}</span>
                  
                  <div className="text-center py-6">
-                    <div className={`text-3xl font-black italic tracking-tighter uppercase mb-2 ${cycleColors[metrics.marketCycle]}`}>
+                    <div className={`text-2xl md:text-3xl font-black italic tracking-tighter uppercase mb-2 ${cycleColors[metrics.marketCycle]}`}>
                        {t[metrics.marketCycle] || metrics.marketCycle}
                     </div>
                     <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden mb-2">
@@ -271,7 +271,7 @@ const WhaleBearForensics: React.FC<Props> = ({ metrics, whaleTx, symbol, isLoadi
         <div className="flex flex-col gap-10">
            
            {/* Liquidity Hunt Radar */}
-           <div className="bg-slate-950/40 p-8 rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col h-[400px]">
+           <div className="bg-slate-950/40 p-6 md:p-8 rounded-[2rem] md:rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col h-[400px]">
               <div className="flex justify-between items-center mb-6 relative z-10">
                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                     <Crosshair className="w-4 h-4 text-rose-500 animate-pulse" /> {t.liquidityHunt}
@@ -325,7 +325,7 @@ const WhaleBearForensics: React.FC<Props> = ({ metrics, whaleTx, symbol, isLoadi
            </div>
 
            {/* Live Transactions Feed */}
-           <div className="bg-slate-950/40 p-8 rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden flex-1 min-h-[300px] flex flex-col">
+           <div className="bg-slate-950/40 p-6 md:p-8 rounded-[2rem] md:rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden flex-1 min-h-[300px] flex flex-col">
               <div className="flex items-center justify-between mb-6">
                  <h4 className="text-[12px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
                     <Zap className="w-4 h-4 text-amber-400" /> Live Feed

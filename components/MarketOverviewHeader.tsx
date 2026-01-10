@@ -11,7 +11,7 @@ interface Props {
 }
 
 const HeaderCard = ({ children, className = "", style }: { children?: React.ReactNode, className?: string, style?: React.CSSProperties }) => (
-  <div className={`bg-slate-950/80 rounded-[2.5rem] p-8 border border-white/5 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden group flex flex-col justify-between min-h-[280px] hover:border-white/10 hover:shadow-[0_0_60px_rgba(59,130,246,0.1)] transition-all duration-500 ${className}`} style={style}>
+  <div className={`bg-slate-950/80 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 border border-white/5 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden group flex flex-col justify-between min-h-[220px] md:min-h-[280px] hover:border-white/10 hover:shadow-[0_0_60px_rgba(59,130,246,0.1)] transition-all duration-500 ${className}`} style={style}>
     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 pointer-events-none"></div>
     {children}
   </div>
@@ -170,7 +170,7 @@ const MarketOverviewHeader: React.FC<Props> = ({ stats, aiAnalysis, t }) => {
                  
                  <div className="flex gap-2">
                     {/* Network Health Pill */}
-                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border backdrop-blur-md ${healthBg} ${healthBorder} ${healthColor} ${healthGlow}`}>
+                    <div className={`hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg border backdrop-blur-md ${healthBg} ${healthBorder} ${healthColor} ${healthGlow}`}>
                        <Wifi className="w-3 h-3" />
                        <span className="text-[8px] font-black uppercase tracking-wider">{healthStatus}</span>
                     </div>
@@ -182,7 +182,7 @@ const MarketOverviewHeader: React.FC<Props> = ({ stats, aiAnalysis, t }) => {
                  </div>
               </div>
               <div className="flex items-baseline gap-2">
-                 <span className="text-4xl 2xl:text-5xl font-black text-white font-mono tracking-tighter tabular-nums transition-all drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                 <span className="text-3xl md:text-4xl 2xl:text-5xl font-black text-white font-mono tracking-tighter tabular-nums transition-all drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]">
                     ${liveCap.toFixed(3)}<span className="text-xl text-slate-500 ml-1">T</span>
                  </span>
               </div>
@@ -257,7 +257,7 @@ const MarketOverviewHeader: React.FC<Props> = ({ stats, aiAnalysis, t }) => {
               
               <div className="relative group">
                  <h3 
-                    className={`text-3xl xl:text-4xl font-black uppercase italic tracking-tighter leading-none mb-4 transition-all duration-700 ${signalColor}`}
+                    className={`text-2xl md:text-3xl xl:text-4xl font-black uppercase italic tracking-tighter leading-none mb-4 transition-all duration-700 ${signalColor}`}
                     style={{ 
                         filter: `drop-shadow(0 0 15px ${glowColor})`,
                         textShadow: `0 0 30px ${glowColor}`
@@ -370,9 +370,6 @@ const MarketOverviewHeader: React.FC<Props> = ({ stats, aiAnalysis, t }) => {
                     {[0, 25, 50, 75, 100].map((tick) => {
                         const angle = (tick / 100) * 180; // 0 to 180
                         const rad = (angle * Math.PI) / 180;
-                        // Coordinates: cx=100, cy=100. r_inner=65, r_outer=75.
-                        // Map angle 0 -> West (-1, 0), 90 -> North (0, -1), 180 -> East (1, 0)
-                        // x = 100 - r * cos(rad), y = 100 - r * sin(rad)
                         const x1 = 100 - 68 * Math.cos(rad);
                         const y1 = 100 - 68 * Math.sin(rad);
                         const x2 = 100 - 78 * Math.cos(rad);
@@ -401,7 +398,7 @@ const MarketOverviewHeader: React.FC<Props> = ({ stats, aiAnalysis, t }) => {
 
               {/* Value Display */}
               <div className="absolute bottom-[20px] flex flex-col items-center">
-                  <span className="text-4xl font-black text-white font-mono tabular-nums drop-shadow-lg tracking-tighter" style={{ textShadow: `0 0 20px ${fgColor}60` }}>
+                  <span className="text-3xl md:text-4xl font-black text-white font-mono tabular-nums drop-shadow-lg tracking-tighter" style={{ textShadow: `0 0 20px ${fgColor}60` }}>
                       {liveFg.toFixed(0)}
                   </span>
               </div>
@@ -457,7 +454,7 @@ const MarketOverviewHeader: React.FC<Props> = ({ stats, aiAnalysis, t }) => {
                  
                  {/* Center Content */}
                  <div className="absolute flex flex-col items-center z-30">
-                    <span className="text-5xl font-black text-white font-mono tabular-nums text-glow-gold">{liveScore.toFixed(0)}</span>
+                    <span className="text-4xl md:text-5xl font-black text-white font-mono tabular-nums text-glow-gold">{liveScore.toFixed(0)}</span>
                     <span className="text-[8px] font-black text-gold/60 uppercase tracking-widest mt-1">Index</span>
                  </div>
               </div>
