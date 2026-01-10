@@ -4,7 +4,8 @@ import {
   Eye, Globe, Zap, Target, Activity, LayoutDashboard, 
   TrendingUp, Ship, Database, Brain, Settings, Cpu, ShieldCheck, 
   Terminal, Lock, ChevronRight, Clock, 
-  Network, Wifi, Shield, Fingerprint, Award, Layers, ScanText
+  Network, Wifi, Shield, Fingerprint, Award, Layers, ScanText,
+  RefreshCw
 } from 'lucide-react';
 import { MarketData, BlockchainStats, AIAnalysis, MLPrediction, WhaleBearMetrics, OnChainMetrics, SocialMetrics } from './types';
 import { translations, Language } from './translations';
@@ -74,6 +75,7 @@ const App: React.FC = () => {
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isMLRunning, setIsMLRunning] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [nodeLatency, setNodeLatency] = useState(12);
 
   const currentMarket = useMemo(() => markets.find(m => m.symbol === selectedSymbol), [markets, selectedSymbol]);
@@ -133,6 +135,19 @@ const App: React.FC = () => {
       console.error("Market data update failed", e);
     }
   }, [selectedSymbol]);
+
+  const handleGlobalRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    setNodeLatency(Math.floor(Math.random() * 20) + 80); // Simulate reconnect spike
+    
+    await updateMarketData();
+    
+    setTimeout(() => {
+        setIsRefreshing(false);
+        setNodeLatency(Math.floor(Math.random() * 5) + 10);
+    }, 800);
+  }, [isRefreshing, updateMarketData]);
 
   const handleRefreshAI = useCallback(async () => {
     if (!currentMarket || isAnalyzing || isMLRunning) return;
@@ -233,17 +248,32 @@ const App: React.FC = () => {
           ))}
         </nav>
 
-        <div className="mt-10 p-6 marwan-badge-id rounded-[2.5rem] cursor-pointer group reveal-anim" style={{ animationDelay: '0.8s' }} onClick={() => handleLinkClick(t.builtByMarwan)}>
-           <div className="flex items-center gap-4 mb-4 relative z-10">
-             <div className="p-3 bg-gold/10 rounded-xl border border-gold/20">
-                <Award className="w-6 h-6 text-gold drop-shadow-glow" />
-             </div>
-             <div className="flex flex-col text-start">
-               <span className="text-[12px] font-black text-white uppercase tracking-widest">{t.builtByMarwan}</span>
-               <span className="text-[7px] text-gold/60 font-bold uppercase tracking-[0.4em]">Master Architect G8</span>
-             </div>
-           </div>
-           <p className="text-[9px] text-muted opacity-40 uppercase leading-relaxed italic font-bold relative z-10">{t.sidebarDesc}</p>
+        {/* SIDEBAR BADGE - UPGRADED */}
+        <div 
+          className="mt-10 relative p-6 rounded-[2rem] cursor-pointer group overflow-hidden border border-gold/10 hover:border-gold/30 transition-all duration-500 bg-gradient-to-b from-slate-900/50 to-black/50 reveal-anim" 
+          style={{ animationDelay: '0.8s' }} 
+          onClick={() => handleLinkClick(t.builtByMarwan)}
+        >
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Award className="w-16 h-16 text-gold rotate-12" />
+            </div>
+            
+            <div className="flex items-center gap-4 mb-3 relative z-10">
+                <div className="p-3 bg-gold/10 rounded-2xl border border-gold/20 shadow-[0_0_15px_rgba(212,175,55,0.15)] group-hover:scale-110 transition-transform">
+                    <Award className="w-6 h-6 text-gold" />
+                </div>
+                <div>
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest block">{t.builtByMarwan}</span>
+                    <span className="text-[7px] text-gold/80 font-bold uppercase tracking-[0.3em] block mt-1">Master Architect</span>
+                </div>
+            </div>
+            
+            <div className="relative z-10 h-px w-full bg-gradient-to-r from-transparent via-gold/30 to-transparent my-3"></div>
+            
+            <p className="text-[8px] text-slate-400 font-mono relative z-10 leading-relaxed">
+                <span className="text-gold/60">ID:</span> MN-8821-XRAY<br/>
+                <span className="text-gold/60">ACCESS:</span> UNLIMITED
+            </p>
         </div>
       </aside>
 
@@ -288,19 +318,39 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-6 flex-shrink-0 flex-wrap justify-end">
-              <div className="marwan-badge-id px-8 py-3.5 rounded-2xl flex items-center gap-5 shadow-2xl transition-all cursor-pointer group">
-                <div className="relative p-2.5 bg-gold/10 rounded-xl border border-gold/20 shadow-inner">
-                  <Fingerprint className="w-6 h-6 text-gold group-hover:scale-125 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gold/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                </div>
-                <div className="flex flex-col text-start relative z-10">
-                  <span className="text-[14px] text-white font-black italic leading-none">{t.builtByMarwan}</span>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
-                    <span className="text-[8px] text-gold/60 font-bold tracking-[0.4em]">SYSTEM CORE G8</span>
+              
+              {/* HEADER BADGE - UPGRADED */}
+              <div 
+                className="relative px-6 py-3 rounded-2xl flex items-center gap-4 bg-slate-950/80 border border-gold/20 shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:border-gold/50 hover:shadow-[0_0_25px_rgba(212,175,55,0.2)] transition-all cursor-pointer group overflow-hidden"
+                onClick={() => handleLinkClick(t.builtByMarwan)}
+              >
+                  {/* Scanning Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gold/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                  
+                  <div className="relative p-2 bg-gold/10 rounded-xl border border-gold/20">
+                      <Fingerprint className="w-5 h-5 text-gold" />
+                      <div className="absolute inset-0 bg-gold/20 blur-md rounded-full opacity-50 animate-pulse"></div>
                   </div>
-                </div>
+                  
+                  <div className="flex flex-col text-start z-10">
+                      <span className="text-[11px] text-white font-black italic tracking-widest uppercase">{t.builtByMarwan}</span>
+                      <div className="flex items-center gap-1.5">
+                          <div className="w-1 h-1 rounded-full bg-gold shadow-[0_0_5px_#D4AF37] animate-ping" />
+                          <span className="text-[7px] text-gold font-bold tracking-[0.3em] opacity-90">SYSTEM CORE G8</span>
+                      </div>
+                  </div>
               </div>
+
+              {/* Server Refresh Button */}
+              <button 
+                onClick={handleGlobalRefresh}
+                disabled={isRefreshing}
+                className="relative p-3.5 rounded-2xl bg-slate-900/50 border border-white/10 hover:border-accent/50 hover:bg-accent/10 transition-all group overflow-hidden"
+                title={t.terminalSync}
+              >
+                <div className={`absolute inset-0 bg-accent/20 blur-xl transition-opacity duration-500 ${isRefreshing ? 'opacity-100' : 'opacity-0'}`}></div>
+                <RefreshCw className={`w-5 h-5 text-slate-400 group-hover:text-accent transition-colors ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
 
               <div className="flex bg-black/50 rounded-2xl border border-white/10 p-1.5 shadow-xl">
                 <button onClick={() => setLang('en')} className={`px-5 py-2.5 rounded-xl text-[11px] font-black transition-all ${lang === 'en' ? 'bg-accent text-white shadow-lg' : 'text-muted hover:text-white'}`}>EN</button>
@@ -372,7 +422,7 @@ const App: React.FC = () => {
                             <div className="flex items-center gap-4">
                                <div className="w-10 h-10 rounded-full bg-white p-1.5 shadow-lg flex items-center justify-center">
                                   <img src={COIN_LOGOS[s]} alt={s} className="w-full h-full object-contain" />
-                               </div>
+                                </div>
                                <div>
                                   <span className="text-[12px] font-black text-white tracking-widest block">{s}</span>
                                   <span className="text-[9px] font-bold text-slate-500 tracking-wider">USDT</span>
@@ -510,18 +560,45 @@ const App: React.FC = () => {
                    <span className="text-[12px] font-black text-muted uppercase tracking-[0.6em] italic">© 2025 BULLBEAREYE XRAY. {t.forensicNode}</span>
                 </div>
                 
-                <div onClick={() => handleLinkClick(t.devContact)} className="group relative flex items-center gap-8 marwan-badge-id px-12 py-7 rounded-[3rem] cursor-pointer shadow-5xl border-gold/40">
-                   <div className="relative p-3 bg-gold/20 rounded-2xl border border-gold/30 shadow-glow">
-                      <Award className="w-10 h-10 text-gold drop-shadow-xl" />
-                   </div>
-                   <div className="flex flex-col text-start relative z-10">
-                      <span className="text-[16px] font-black text-white uppercase tracking-[0.3em] italic">{t.builtByMarwan}</span>
-                      <span className="text-[9px] text-gold font-bold uppercase tracking-[0.6em] opacity-80 mt-2">CHIEF QUANT ARCHITECT G8</span>
-                   </div>
-                   <div className="w-px h-12 bg-white/20 mx-4 relative z-10"></div>
-                   <div className="flex gap-2.5 relative z-10">
-                      {[1,2,3,4,5].map(i => <div key={i} className="w-2 h-2 bg-gold rounded-full shadow-glow"></div>)}
-                   </div>
+                {/* FOOTER BADGE - UPGRADED */}
+                <div 
+                    onClick={() => handleLinkClick(t.devContact)} 
+                    className="group relative flex items-center gap-8 px-10 py-6 rounded-[3rem] cursor-pointer border border-gold/20 bg-slate-950/50 hover:bg-slate-900/80 hover:border-gold/50 transition-all duration-500 hover:shadow-[0_0_40px_rgba(212,175,55,0.15)] overflow-hidden"
+                >
+                    {/* Animated background noise */}
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
+                    
+                    {/* Animated Border Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl"></div>
+
+                    <div className="relative p-4 bg-gradient-to-br from-gold/20 to-amber-900/20 rounded-2xl border border-gold/30 shadow-[0_0_20px_rgba(212,175,55,0.2)] group-hover:rotate-6 transition-transform duration-500">
+                        <Award className="w-8 h-8 text-gold drop-shadow-md" />
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-gold rounded-full animate-ping"></div>
+                    </div>
+                    
+                    <div className="flex flex-col text-start relative z-10">
+                        <span className="text-[10px] font-bold text-gold/60 uppercase tracking-[0.6em] mb-1">Developed By</span>
+                        <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gold to-white uppercase tracking-wider italic">
+                            {t.builtByMarwan}
+                        </span>
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.4em] mt-2 group-hover:text-gold transition-colors">
+                            Chief Quant Architect G8
+                        </span>
+                    </div>
+                    
+                    <div className="h-12 w-px bg-white/10 mx-2 relative z-10 group-hover:bg-gold/30 transition-colors"></div>
+                    
+                    <div className="flex gap-1.5 relative z-10">
+                        {[1,2,3,4,5].map((i) => (
+                            <div 
+                                key={i} 
+                                className="w-1.5 h-6 bg-slate-800 rounded-full overflow-hidden group-hover:bg-gold/20 transition-colors" 
+                                style={{ transitionDelay: `${i * 50}ms` }}
+                            >
+                                <div className="w-full h-full bg-gold animate-[pulse_2s_infinite]" style={{ animationDelay: `${i * 0.2}s` }}></div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
              </div>
           </footer>

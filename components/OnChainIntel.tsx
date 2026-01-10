@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { OnChainMetrics, WhaleTransaction } from '../types';
 import { 
@@ -23,7 +22,7 @@ const ENTITIES = {
 };
 
 // --- Helper: Particle Flow Animation ---
-const FlowParticle = ({ delay, direction, speed }: { delay: number, direction: 'in' | 'out', speed: number }) => {
+const FlowParticle: React.FC<{ delay: number; direction: 'in' | 'out'; speed: number }> = ({ delay, direction, speed }) => {
   return (
     <div 
       className={`absolute top-1/2 w-2 h-0.5 rounded-full opacity-0 ${direction === 'in' ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' : 'bg-emerald-500 shadow-[0_0_8px_#10b981]'}`}

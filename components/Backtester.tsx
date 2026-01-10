@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Play, RotateCcw, TrendingUp, TrendingDown, BarChart, Settings2, 
@@ -63,7 +62,7 @@ const Backtester: React.FC<BacktesterProps> = ({ marketData, t }) => {
   const initialBalance = 10000;
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const simulationRef = useRef<NodeJS.Timeout | null>(null);
+  const simulationRef = useRef<any>(null);
 
   // Auto-scroll logs
   useEffect(() => {
