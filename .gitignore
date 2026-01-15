@@ -5,8 +5,15 @@ node_modules/
 .next/
 out/
 
+# vite
+dist/
+
 # vercel
 .vercel/
+
+# env
+.env
+.env.*
 
 # logs
 npm-debug.log*
@@ -14,10 +21,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# env
-.env
-.env.*
-
-# OS
+# misc
 .DS_Store
 Thumbs.db
