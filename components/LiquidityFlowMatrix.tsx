@@ -100,7 +100,6 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
         <ArrowRightLeft className="w-96 h-96 text-emerald-400" />
       </div>
 
-      {/* Header - Unified for All Devices */}
       <div className="flex flex-col md:flex-row items-center justify-between mb-12 relative z-10 gap-6">
         <div className="flex items-center gap-6">
           <div className="p-5 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
@@ -123,11 +122,8 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-        
-        {/* CVD Chart Section */}
         <div className="xl:col-span-8 bg-slate-950/40 p-6 md:p-8 rounded-[2.5rem] md:rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col justify-between group/chart hover:border-white/10 transition-colors">
            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-soft-light"></div>
-           
            <div className="flex items-start justify-between mb-8 relative z-10">
              <div>
                <span className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Cumulative Volume Delta</span>
@@ -138,7 +134,6 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
                   </div>
                </h4>
              </div>
-             
              <div className="text-right">
                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Net Flow</span>
                 <span className={`text-xl md:text-2xl font-mono font-black ${metrics.cvd[metrics.cvd.length-1] > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -147,8 +142,8 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
              </div>
           </div>
           
-          <div className="h-64 w-full relative z-10">
-            <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+          <div className="h-96 w-full relative z-10">
+            <ResponsiveContainer width="100%" height="100%" minHeight={350}>
               <AreaChart data={cvdChartData}>
                 <defs>
                   <linearGradient id="cvdGradient" x1="0" y1="0" x2="0" y2="1">
@@ -184,19 +179,16 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          
           <div className="mt-4 flex justify-between items-center text-[8px] font-black text-slate-600 uppercase tracking-widest relative z-10">
              <span>Forensic Liquidity Waveform</span>
              <span className={isBuying ? 'text-emerald-500 animate-pulse' : 'text-rose-500 animate-pulse'}>{t.liveFeed}</span>
           </div>
         </div>
 
-        {/* Pressure Gauge Section */}
         <div className="xl:col-span-4 bg-slate-950/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[3.5rem] border border-white/5 shadow-2xl flex flex-col text-start relative overflow-hidden">
           <div className="absolute top-0 right-0 p-6 opacity-[0.03]">
              <Zap className="w-32 h-32 text-white" />
           </div>
-
           <div className="relative z-10 mb-2">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.volumeImbalance}</span>
@@ -204,23 +196,19 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
                 {metrics.volumeImbalance > 0 ? '+' : ''}{metrics.volumeImbalance.toFixed(1)}%
               </span>
             </div>
-            
             <div className="mb-6 py-2">
               <RadialGauge value={metrics.volumeImbalance} />
             </div>
-
             <p className="text-[9px] text-slate-500 font-bold uppercase mt-1 italic leading-relaxed text-center">
               {t.lang === 'ar' ? 'ضغط أوامر السوق المكتشف' : 'Systemic Market Pressure Detected'}
             </p>
           </div>
-
           <div className="space-y-4 relative z-10 flex-1 flex flex-col justify-end">
              <div className="space-y-4">
                 <div className="flex justify-between items-center text-[9px] font-black text-slate-500 uppercase tracking-widest">
                    <span>Order Flow Origin</span>
                    <Layers className="w-3 h-3 text-indigo-400" />
                 </div>
-                
                 <div className="bg-slate-900/60 rounded-2xl p-4 border border-white/5 space-y-4 shadow-inner">
                     <div className="space-y-1.5">
                        <div className="flex justify-between items-end">
@@ -246,10 +234,7 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
         </div>
       </div>
 
-      {/* Structural Map Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
-        
-        {/* Order Blocks */}
         <div className="bg-slate-950/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[3.5rem] border border-white/5 relative overflow-hidden text-start shadow-2xl">
           <div className="flex items-center justify-between mb-8">
             <h4 className="text-[13px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
@@ -260,84 +245,86 @@ const LiquidityFlowMatrix: React.FC<Props> = ({ data, isLoading, t }) => {
                 <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">SMC Protocol</span>
             </div>
           </div>
-          
           <div className="space-y-4 max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
-            {metrics.orderBlocks.map((ob, i) => (
-              <div key={i} className={`group/ob relative p-1 rounded-[2rem] bg-gradient-to-br ${ob.type === 'BULLISH' ? 'from-emerald-500/20 to-emerald-900/5' : 'from-rose-500/20 to-rose-900/5'} transition-all duration-500`}>
-                <div className="absolute inset-0 bg-black/60 rounded-[2rem] m-[1px]"></div>
-                <div className="relative p-6 flex flex-col gap-4">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-4">
-                            <span className={`p-2.5 rounded-xl ${ob.type === 'BULLISH' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                                {ob.type === 'BULLISH' ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                            </span>
-                            <div>
-                                <span className={`text-[12px] font-black uppercase tracking-[0.2em] block ${ob.type === 'BULLISH' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                    {ob.type === 'BULLISH' ? t.demandZone : t.supplyZone}
-                                </span>
-                                <span className={`text-[9px] font-bold uppercase ${ob.mitigated ? 'text-slate-600 line-through' : 'text-slate-400'}`}>{ob.mitigated ? t.mitigated : 'FRESH'}</span>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-[11px] font-mono font-black text-white">${ob.price.toLocaleString()}</span>
-                        </div>
-                    </div>
-                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                       <div className={`h-full ${ob.type === 'BULLISH' ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: `${(ob.volume / 4000) * 100}%` }}></div>
-                    </div>
+            {metrics.orderBlocks.map((ob, i) => {
+              const isBull = ob.type === 'BULLISH';
+              return (
+                <div key={i} className={`group/ob relative p-[1px] rounded-[2.5rem] transition-all duration-500 hover:scale-[1.02] bg-gradient-to-br ${isBull ? 'from-emerald-400/40 via-emerald-900/20 to-transparent' : 'from-rose-400/40 via-rose-900/20 to-transparent'}`}>
+                  <div className="bg-slate-900/90 rounded-[2.5rem] p-6 flex flex-col gap-4 relative overflow-hidden">
+                      <div className={`absolute inset-0 opacity-10 group-hover/ob:opacity-20 transition-opacity ${isBull ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                      <div className="flex justify-between items-center relative z-10">
+                          <div className="flex items-center gap-4">
+                              <span className={`p-3 rounded-2xl shadow-xl transition-all group-hover/ob:scale-110 ${isBull ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                                  {isBull ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                              </span>
+                              <div>
+                                  <span className={`text-[13px] font-black uppercase tracking-[0.2em] block ${isBull ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                      {isBull ? t.demandZone : t.supplyZone}
+                                  </span>
+                                  <span className={`text-[10px] font-bold uppercase ${ob.mitigated ? 'text-slate-600 line-through' : 'text-slate-400'}`}>{ob.mitigated ? t.mitigated : 'ACTIVE ZONE'}</span>
+                              </div>
+                          </div>
+                          <div className="text-right">
+                              <span className="text-[13px] font-mono font-black text-white drop-shadow-md">${ob.price.toLocaleString()}</span>
+                          </div>
+                      </div>
+                      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden shadow-inner relative z-10">
+                         <div className={`h-full transition-all duration-1000 ${isBull ? 'bg-emerald-500 shadow-[0_0_15px_#10b981]' : 'bg-rose-500 shadow-[0_0_15px_#f43f5e]'}`} style={{ width: `${(ob.volume / 4000) * 100}%` }}></div>
+                      </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
-        {/* FVGs */}
         <div className="bg-slate-950/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[3.5rem] border border-white/5 relative overflow-hidden text-start shadow-2xl">
           <div className="flex items-center justify-between mb-8">
             <h4 className="text-[13px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
-              <Target className="w-5 h-5 text-indigo-400" /> {t.efficiencyGaps}
+              <Target className="w-5 h-5 text-indigo-400" /> Forensic Gaps (FVG)
             </h4>
             <ShieldAlert className="w-5 h-5 text-slate-700 opacity-50" />
           </div>
-          
           <div className="space-y-4 max-h-[450px] overflow-y-auto custom-scrollbar pr-2">
              {metrics.fvg.map((f, i) => (
-               <div key={i} className={`relative p-6 rounded-[2.5rem] bg-slate-900/40 border hover:border-indigo-500/30 transition-all group overflow-hidden border-white/5 shadow-inner`}>
-                  <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:scale-125 transition-transform">
-                    <Waves className="w-20 h-20 text-indigo-400" />
+               <div key={i} className={`relative p-6 rounded-[2.5rem] bg-slate-900/40 border border-white/5 overflow-hidden transition-all group hover:border-indigo-500/30 hover:bg-slate-900/60`}>
+                  <div className="absolute inset-0 pointer-events-none">
+                     <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.02),transparent)] animate-[move-beam_3s_linear_infinite]"></div>
                   </div>
-
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:scale-125 transition-transform duration-1000">
+                    <Waves className="w-24 h-24 text-indigo-400 animate-pulse" />
+                  </div>
                   <div className="flex justify-between items-center relative z-10">
                       <div className="flex items-center gap-4">
-                          <div className={`p-2.5 rounded-xl ${f.type === 'BISI' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                              {f.type === 'BISI' ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
+                          <div className={`p-3 rounded-2xl shadow-lg border ${f.type === 'BISI' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
+                              {f.type === 'BISI' ? <ArrowUpRight size={20} /> : <ArrowDownRight size={20} />}
                           </div>
                           <div>
-                              <span className={`text-[12px] font-black uppercase tracking-[0.2em] block ${f.type === 'BISI' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              <span className={`text-[13px] font-black uppercase tracking-[0.2em] block ${f.type === 'BISI' ? 'text-emerald-400' : 'text-rose-400'}`}>
                                   {f.type} GAP
                               </span>
-                              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{t.magnetZone}</span>
+                              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                                <Magnet size={10} className="text-indigo-400" /> Magnet Zone
+                              </span>
                           </div>
                       </div>
                       <div className="text-right">
-                         <span className="text-[11px] font-mono font-black text-white block">${f.bottom.toLocaleString()}</span>
-                         <span className="text-[11px] font-mono font-black text-white/50 block">${f.top.toLocaleString()}</span>
+                         <span className="text-sm font-mono font-black text-white block drop-shadow-sm">${f.bottom.toLocaleString()}</span>
+                         <span className="text-sm font-mono font-black text-white/40 block">${f.top.toLocaleString()}</span>
                       </div>
                   </div>
                </div>
              ))}
-             
-             <div className="mt-8 flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                <ShieldAlert className="w-4 h-4 text-slate-500 mt-0.5" />
-                <p className="text-[9px] text-slate-500 font-bold uppercase italic leading-relaxed">
+             <div className="mt-8 flex items-start gap-4 p-5 rounded-3xl bg-white/[0.02] border border-white/5 group-hover:bg-white/[0.04] transition-colors">
+                <ShieldAlert className="w-5 h-5 text-slate-500 mt-0.5 animate-bounce" />
+                <p className="text-[10px] text-slate-500 font-bold uppercase italic leading-relaxed">
                   {t.lang === 'ar' 
                     ? '*تمثل فجوات القيمة العادلة مناطق ذات سيولة منخفضة، مما يجذب السعر لإعادة التوازن عاجلاً أم آجلاً.' 
-                    : '*Fair Value Gaps indicate imbalances acting as institutional magnets for impending price rebalancing.'}
+                    : '*Institutional liquidity voids (FVG) act as price magnets, typically preceding systemic rebalancing events.'}
                 </p>
              </div>
           </div>
         </div>
-
       </div>
     </div>
   );

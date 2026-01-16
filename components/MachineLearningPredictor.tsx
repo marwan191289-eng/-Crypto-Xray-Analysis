@@ -16,35 +16,38 @@ interface MLProps {
   onValidate?: () => void;
 }
 
-// --- Sub-Component: Neural Activation Grid ---
 const NeuralGrid = () => {
   const [cells, setCells] = useState(Array(48).fill(0));
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCells(prev => prev.map(() => Math.random() > 0.7 ? Math.random() : 0));
-    }, 100);
+      setCells(prev => prev.map(() => Math.random() > 0.75 ? Math.random() : 0));
+    }, 120);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="grid grid-cols-12 gap-1 h-12 w-full opacity-60">
+    <div className="grid grid-cols-12 gap-1.5 h-14 w-full opacity-90">
       {cells.map((val, i) => (
         <div 
           key={i} 
-          className="rounded-[1px] transition-all duration-300"
+          className="rounded-[2px] transition-all duration-300 relative overflow-hidden"
           style={{ 
-            backgroundColor: val > 0 ? `rgba(99, 102, 241, ${val})` : 'rgba(30, 41, 59, 0.3)',
-            boxShadow: val > 0.8 ? '0 0 4px #6366f1' : 'none',
-            transform: val > 0.9 ? 'scale(1.2)' : 'scale(1)'
+            background: val > 0 ? 'linear-gradient(135deg, #3B82F6, #D4AF37)' : 'rgba(30, 41, 59, 0.1)',
+            boxShadow: val > 0.5 ? `0 0 ${15 * val}px rgba(59, 130, 246, 0.6), 0 0 ${20 * val}px rgba(212, 175, 55, 0.4)` : 'none',
+            opacity: val > 0 ? 0.4 + (val * 0.6) : 0.1,
+            transform: val > 0.8 ? `scale(${1 + val * 0.2})` : 'scale(1)'
           }}
-        />
+        >
+          {val > 0.8 && (
+            <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
+          )}
+        </div>
       ))}
     </div>
   );
 };
 
-// --- Sub-Component: Confidence Heartbeat ---
 const ConfidenceHeartbeat = ({ baseConfidence }: { baseConfidence: number }) => {
   const [data, setData] = useState(Array(30).fill({ val: baseConfidence }));
 
@@ -84,7 +87,6 @@ const ConfidenceHeartbeat = ({ baseConfidence }: { baseConfidence: number }) => 
 };
 
 const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, currentPrice, t, onValidate }) => {
-  // Live Simulation State
   const [inferenceTime, setInferenceTime] = useState(12);
   
   useEffect(() => {
@@ -121,7 +123,6 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
   const directionBg = isUp ? 'bg-emerald-500/10' : isDown ? 'bg-rose-500/10' : 'bg-amber-500/10';
   const directionBorder = isUp ? 'border-emerald-500/30' : isDown ? 'border-rose-500/30' : 'border-amber-500/30';
 
-  // Ensemble Data Preparation
   const ensembleData = [
     { name: 'LSTM (Time)', vote: prediction.ensembleVotes.lstm, score: prediction.ensembleVotes.lstm === 'BUY' ? 85 : prediction.ensembleVotes.lstm === 'SELL' ? 15 : 50 },
     { name: 'XGB (Pattern)', vote: prediction.ensembleVotes.xgboost, score: prediction.ensembleVotes.xgboost === 'BUY' ? 92 : prediction.ensembleVotes.xgboost === 'SELL' ? 8 : 45 },
@@ -130,11 +131,9 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
 
   return (
     <div className="bg-slate-900/90 border-2 border-slate-800 rounded-[2rem] md:rounded-[4rem] p-6 md:p-12 shadow-3xl relative overflow-hidden group">
-      {/* Background FX */}
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/10 blur-[120px] rounded-full group-hover:bg-indigo-600/20 transition-all duration-1000 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-50"></div>
       
-      {/* Header */}
       <div className="flex flex-col md:flex-row items-center justify-between mb-8 md:mb-12 relative z-10 gap-6">
         <div className="flex items-center gap-6">
           <div className="p-5 bg-indigo-500/10 rounded-3xl border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.15)] relative overflow-hidden">
@@ -166,16 +165,11 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 relative z-10">
-        
-        {/* LEFT COLUMN: Prediction Core */}
         <div className="xl:col-span-5 flex flex-col gap-8">
-           
-           {/* Main Prediction Card */}
            <div className={`bg-slate-950/60 p-6 md:p-10 rounded-[2rem] md:rounded-[3.5rem] border relative overflow-hidden transition-all duration-500 flex flex-col justify-between h-full shadow-2xl ${directionBorder}`}>
               <div className={`absolute top-0 right-0 p-12 opacity-[0.05] transition-transform duration-700 ${isUp ? 'rotate-0' : 'rotate-180'}`}>
                  <TrendingUp className={`w-64 h-64 ${directionColor}`} />
               </div>
-
               <div>
                  <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] block mb-6">{t.targetProjection}</span>
                  <div className="flex items-baseline gap-4 mb-2">
@@ -194,7 +188,6 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
                     )}
                  </div>
               </div>
-
               <div className="mt-10 pt-10 border-t border-white/5">
                  <div className="flex justify-between items-end mb-2">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Model Confidence</span>
@@ -214,13 +207,9 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
                  </div>
               </div>
            </div>
-
         </div>
 
-        {/* RIGHT COLUMN: Pattern & Logic */}
         <div className="xl:col-span-7 flex flex-col gap-8">
-           
-           {/* Pattern Recognition Card */}
            <div className="bg-slate-950/40 border border-white/5 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10 relative overflow-hidden flex flex-col shadow-lg group/pattern">
               <div className="flex items-center justify-between mb-8">
                  <div className="flex items-center gap-4">
@@ -231,7 +220,6 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
                  </div>
                  <div className="text-[9px] font-black text-indigo-400 uppercase tracking-widest animate-pulse border border-indigo-500/30 px-3 py-1 rounded-lg bg-indigo-500/5">Match Found</div>
               </div>
-
               <div className="relative z-10 mb-8">
                  <h3 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter mb-2 group-hover/pattern:text-indigo-300 transition-colors">
                     {prediction.patternDetected}
@@ -240,7 +228,6 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
                     {prediction.patternDetectedAr}
                  </p>
               </div>
-
               <div className="flex-1 bg-black/20 rounded-3xl p-6 border border-white/5 overflow-y-auto custom-scrollbar relative">
                  <div className="flex gap-4">
                     <div className="flex flex-col items-center gap-1 pt-1">
@@ -259,14 +246,12 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
               </div>
            </div>
 
-           {/* Ensemble Consensus Visualizer */}
            <div className="bg-slate-950/40 border border-white/5 rounded-[2rem] md:rounded-[3rem] p-6 md:p-8 relative overflow-hidden flex flex-col justify-center">
               <div className="flex justify-between items-center mb-6">
                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                     <GitMerge className="w-4 h-4 text-white" /> {t.ensembleVoting}
                  </span>
               </div>
-              
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                  {ensembleData.map((model, i) => (
                     <div key={i} className="bg-slate-900/50 rounded-2xl p-4 border border-white/5 flex flex-col gap-3 group/model hover:border-indigo-500/30 transition-all">
@@ -286,20 +271,17 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
                  ))}
               </div>
            </div>
-
         </div>
       </div>
 
-      {/* Footer: Neural Activation Grid & Validation */}
       <div className="mt-12 pt-10 border-t-2 border-white/5 grid grid-cols-1 md:grid-cols-2 gap-10 items-center relative z-10">
          <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center text-[9px] font-black text-slate-500 uppercase tracking-widest">
                <span className="flex items-center gap-2"><Layers className="w-3 h-3" /> Neural Layer Activation</span>
-               <span className="text-indigo-400 animate-pulse">Processing...</span>
+               <span className="text-indigo-400 animate-pulse">Processing Cognitive Weights...</span>
             </div>
             <NeuralGrid />
          </div>
-
          <div className="flex justify-end">
             <button 
               onClick={onValidate}
@@ -309,7 +291,6 @@ const MachineLearningPredictor: React.FC<MLProps> = ({ prediction, isLoading, cu
             </button>
          </div>
       </div>
-
     </div>
   );
 };

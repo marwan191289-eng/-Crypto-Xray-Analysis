@@ -38,14 +38,70 @@ const SAMPLE_MSGS = [
   { text: "Whale alert: 5000 BTC moved to Binance.", sentiment: 'BEAR', source: 'NEWS' },
 ];
 
+const SentimentRadialGauge = ({ value }: { value: number }) => {
+  const dashArray = 283;
+  const dashOffset = dashArray - (dashArray * value) / 100;
+  
+  // Calculate color based on sentiment value
+  const getColor = (v: number) => {
+    if (v < 40) return '#F43F5E'; // Bearish (accent-red)
+    if (v < 60) return '#D4AF37'; // Neutral (accent-gold)
+    return '#10B981'; // Bullish (accent-green)
+  };
+  
+  const color = getColor(value);
+
+  return (
+    <div className="relative w-24 h-24 group/gauge cursor-pointer transition-transform duration-500 hover:scale-110">
+      <svg className="w-full h-full -rotate-90 overflow-visible" viewBox="0 0 100 100">
+        <defs>
+          <linearGradient id="sentimentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#F43F5E" />
+            <stop offset="50%" stopColor="#D4AF37" />
+            <stop offset="100%" stopColor="#10B981" />
+          </linearGradient>
+          <filter id="gaugeGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+        <circle
+          cx="50"
+          cy="50"
+          r="45"
+          fill="transparent"
+          stroke="rgba(255,255,255,0.05)"
+          strokeWidth="8"
+        />
+        <circle
+          cx="50"
+          cy="50"
+          r="45"
+          fill="transparent"
+          stroke={color}
+          strokeWidth="8"
+          strokeDasharray={dashArray}
+          strokeDashoffset={dashOffset}
+          strokeLinecap="round"
+          className="transition-all duration-1000 ease-out group-hover/gauge:filter group-hover/gauge:drop-shadow-[0_0_8px_currentColor]"
+          style={{ transition: 'stroke-dashoffset 1s ease-out, stroke 0.5s ease-in-out' }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-lg font-black font-mono text-white transition-all duration-300 group-hover/gauge:scale-125" style={{ textShadow: `0 0 10px ${color}` }}>{value.toFixed(0)}</span>
+        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest mt-[-2px]">Score</span>
+      </div>
+      <div className="absolute -inset-2 bg-gradient-to-br from-white/5 to-transparent rounded-full opacity-0 group-hover/gauge:opacity-100 transition-opacity blur-md pointer-events-none"></div>
+    </div>
+  );
+};
+
 const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t }) => {
-  // Real-time simulation state
   const [sentimentHistory, setSentimentHistory] = useState<{ time: string, value: number, volume: number }[]>([]);
   const [liveFeed, setLiveFeed] = useState<StreamMsg[]>([]);
   const [botActivity, setBotActivity] = useState(12);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Initialize history
   useEffect(() => {
     const initData = Array.from({ length: 20 }, (_, i) => ({
       time: new Date(Date.now() - (20 - i) * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -55,10 +111,8 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
     setSentimentHistory(initData);
   }, []);
 
-  // Live Data Simulation Engine
   useEffect(() => {
     const interval = setInterval(() => {
-      // 1. Update Graph
       setSentimentHistory(prev => {
         const lastVal = prev[prev.length - 1].value;
         const newVal = Math.max(0, Math.min(100, lastVal + (Math.random() - 0.5) * 8));
@@ -70,7 +124,6 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
         return [...prev.slice(1), newPoint];
       });
 
-      // 2. Inject Live Message
       if (Math.random() > 0.4) {
         const template = SAMPLE_MSGS[Math.floor(Math.random() * SAMPLE_MSGS.length)];
         const newMsg: StreamMsg = {
@@ -84,9 +137,7 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
         setLiveFeed(prev => [newMsg, ...prev].slice(0, 8));
         setBotActivity(prev => Math.max(5, Math.min(40, prev + (Math.random() - 0.5) * 2)));
       }
-
     }, 2000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -104,9 +155,9 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
   }
 
   const getSentimentColor = (val: number) => {
-    if (val > 65) return '#10b981'; // Emerald
-    if (val < 40) return '#f43f5e'; // Rose
-    return '#fbbf24'; // Amber
+    if (val > 65) return '#10b981';
+    if (val < 40) return '#f43f5e';
+    return '#fbbf24';
   };
 
   const currentSentiment = sentimentHistory[sentimentHistory.length - 1]?.value || 50;
@@ -118,7 +169,6 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
         <Hash className="w-64 h-64 text-indigo-400" />
       </div>
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 relative z-10">
         <div className="flex items-center gap-6">
           <div className="p-5 bg-indigo-500/15 rounded-3xl border border-indigo-500/30 shadow-2xl relative">
@@ -145,11 +195,8 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-        
-        {/* Main Chart: Social Sentiment Pulse */}
         <div className="xl:col-span-8 bg-slate-950/40 p-8 rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col group/chart">
            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-soft-light"></div>
-           
            <div className="flex justify-between items-start mb-6 relative z-10">
               <div>
                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Aggregated Sentiment Waveform</span>
@@ -204,12 +251,10 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
                     />
                  </AreaChart>
               </ResponsiveContainer>
-              {/* Scanning Line Effect */}
               <div className="absolute top-0 right-0 bottom-0 w-[2px] bg-white/20 shadow-[0_0_10px_white] animate-[scan_3s_linear_infinite]"></div>
            </div>
         </div>
 
-        {/* Real-time Message Interceptor */}
         <div className="xl:col-span-4 bg-slate-950/40 p-8 rounded-[3.5rem] border border-white/5 shadow-2xl relative overflow-hidden flex flex-col">
            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <Terminal className="w-5 h-5 text-accent" />
@@ -242,29 +287,22 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
         </div>
       </div>
 
-      {/* Platform Breakdown Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10 relative z-10">
-        
-        {/* X (Twitter) Node */}
-        <div className="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 hover:border-[#1DA1F2]/30 transition-all group/plat">
-           <div className="flex justify-between items-start mb-4">
+        <div className="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 hover:border-[#1DA1F2]/30 transition-all group/plat flex flex-col items-center">
+           <div className="flex justify-between items-start mb-4 w-full">
               <div className="p-3 bg-[#1DA1F2]/10 rounded-xl">
                  <Twitter className="w-5 h-5 text-[#1DA1F2]" />
               </div>
-              <span className={`text-xl font-black font-mono ${getSentimentColor(metrics.xSentiment)}`}>{metrics.xSentiment.toFixed(0)}%</span>
            </div>
-           <div className="space-y-3">
+           <SentimentRadialGauge value={metrics.xSentiment} />
+           <div className="space-y-3 w-full mt-6">
               <div className="flex justify-between text-[9px] font-bold text-slate-500 uppercase tracking-widest">
                  <span>Reach Impact</span>
-                 <span className="text-white">High</span>
-              </div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                 <div className="h-full bg-[#1DA1F2]" style={{ width: `${metrics.xSentiment}%` }}></div>
+                 <span className="text-white">High Intensity</span>
               </div>
            </div>
         </div>
 
-        {/* Reddit Node */}
         <div className="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 hover:border-[#FF4500]/30 transition-all group/plat">
            <div className="flex justify-between items-start mb-4">
               <div className="p-3 bg-[#FF4500]/10 rounded-xl">
@@ -283,7 +321,6 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
            </div>
         </div>
 
-        {/* Telegram Node */}
         <div className="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 hover:border-[#0088cc]/30 transition-all group/plat">
            <div className="flex justify-between items-start mb-4">
               <div className="p-3 bg-[#0088cc]/10 rounded-xl">
@@ -304,10 +341,8 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
               </div>
            </div>
         </div>
-
       </div>
 
-      {/* Semantic Keyword Cluster */}
       <div className="mt-10 pt-10 border-t border-white/5 flex flex-col lg:flex-row justify-between items-start gap-10">
          <div className="flex-1">
             <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] mb-6 flex items-center gap-3">
@@ -343,7 +378,6 @@ const SocialIntel: React.FC<SocialIntelProps> = ({ metrics, symbol, isLoading, t
             </div>
          </div>
       </div>
-
     </div>
   );
 };

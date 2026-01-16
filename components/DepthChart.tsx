@@ -70,7 +70,7 @@ const DepthChart: React.FC<DepthChartProps> = ({ price, t }) => {
   const buyRatio = (metrics.buyVol / (metrics.buyVol + metrics.sellVol)) * 100;
 
   return (
-    <div className="cyber-card rounded-[2.5rem] p-8 border border-white/5 h-[700px] flex flex-col relative overflow-hidden group shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+    <div className="cyber-card rounded-[2.5rem] p-8 border border-white/5 h-[800px] flex flex-col relative overflow-hidden group shadow-[0_0_50px_rgba(0,0,0,0.3)] transition-all duration-500">
       {/* Background FX */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 blur-[100px] rounded-full group-hover:bg-indigo-500/10 transition-all pointer-events-none"></div>
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 pointer-events-none mix-blend-overlay"></div>
@@ -117,7 +117,7 @@ const DepthChart: React.FC<DepthChartProps> = ({ price, t }) => {
       <div className="flex-1 flex flex-col min-h-0 relative z-10">
          
          {/* Chart Area */}
-         <div className="flex-1 w-full min-h-[300px] relative">
+         <div className="flex-1 w-full min-h-[400px] relative">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                 <defs>
