@@ -8,7 +8,6 @@ export const fetchMarketData = async (symbol: string): Promise<Partial<MarketDat
   try {
     const tickerResponse = await fetch(`${BINANCE_BASE}/ticker/24hr?symbol=${symbol}USDT`);
     const ticker = await tickerResponse.json();
-    
     return {
       symbol: symbol,
       price: parseFloat(ticker.lastPrice),
@@ -24,9 +23,8 @@ export const fetchMarketData = async (symbol: string): Promise<Partial<MarketDat
 };
 
 export const fetchWhaleBearMetrics = async (symbol: string, price: number): Promise<WhaleBearMetrics> => {
-  // تجميع تدفقات "حقيقية" تحاكي منصات التداول العالمية
   const history = Array.from({ length: 12 }, (_, i) => {
-    const bias = Math.sin(i * 0.5); // تمثيل موجي للتدفقات
+    const bias = Math.sin(i * 0.5); 
     const inflow = (Math.random() * 20000000) + (bias > 0 ? bias * 10000000 : 0);
     const outflow = (Math.random() * 20000000) + (bias < 0 ? Math.abs(bias) * 12000000 : 0);
     return {
@@ -36,8 +34,6 @@ export const fetchWhaleBearMetrics = async (symbol: string, price: number): Prom
       net: inflow - outflow
     };
   });
-
-  // تحديد مرحلة وايكوف (Wyckoff) بناءً على التذبذب والتدفق
   const avgNet = history.reduce((acc, curr) => acc + curr.net, 0) / history.length;
   let cycle: any = 'ACCUMULATION';
   if (avgNet > 5000000) cycle = 'MARK-UP';
@@ -61,7 +57,6 @@ export const fetchOnChainMetrics = async (symbol: string): Promise<OnChainMetric
     const amount = 50 + Math.random() * 500;
     const isExchangeFrom = Math.random() > 0.6;
     const isExchangeTo = !isExchangeFrom && Math.random() > 0.3;
-    
     return {
       id: Math.random().toString(36).substring(7),
       amount: amount,
@@ -74,10 +69,8 @@ export const fetchOnChainMetrics = async (symbol: string): Promise<OnChainMetric
       hash: '0x' + Math.random().toString(16).substring(2, 10) + '...'
     };
   };
-
   const inflow = Math.random() * 50000000;
   const outflow = Math.random() * 48000000;
-
   return {
     exchangeInflow: inflow,
     exchangeOutflow: outflow,
@@ -128,9 +121,9 @@ export const fetchCEXMetrics = async (symbol: string): Promise<CEXMetrics> => {
   }
 };
 
-export const fetchHistory = async (symbol: string, limit: number = 60) => {
+export const fetchHistory = async (symbol: string, interval: string = '1h', limit: number = 60) => {
   try {
-    const response = await fetch(`${BINANCE_BASE}/klines?symbol=${symbol}USDT&interval=1h&limit=${limit}`);
+    const response = await fetch(`${BINANCE_BASE}/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`);
     const data = await response.json();
     return data.map((d: any) => ({
       time: new Date(d[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -139,7 +132,8 @@ export const fetchHistory = async (symbol: string, limit: number = 60) => {
       low: parseFloat(d[3]),
       close: parseFloat(d[4]),
       price: parseFloat(d[4]), 
-      volume: parseFloat(d[5])
+      volume: parseFloat(d[5]),
+      timestamp: d[0] // Added raw timestamp for better sorting/keying
     }));
   } catch (error) {
     console.error(`Failed to fetch history for ${symbol}:`, error);
@@ -148,12 +142,16 @@ export const fetchHistory = async (symbol: string, limit: number = 60) => {
 };
 
 export const fetchBlockchainStats = async (): Promise<Partial<BlockchainStats>> => {
-  let fgValue = 50;
+  const jitter = (base: number, pct: number) => base * (1 + (Math.random() - 0.5) * pct);
+  
+  let fgValue = Math.floor(jitter(50, 0.1));
   let fgLabel = 'Neutral';
-  let gasPrice = 15;
+  let gasPrice = Math.floor(jitter(15, 0.2));
+  let totalCap = jitter(2.85, 0.01);
+  let globalVol = jitter(85.4, 0.05);
+  let btcDom = jitter(58.2, 0.005);
 
   try {
-    // Isolated try-catch for Fear & Greed API
     const fgResponse = await fetch('https://api.alternative.me/fng/?limit=1');
     if (fgResponse.ok) {
       const fgData = await fgResponse.json();
@@ -162,39 +160,33 @@ export const fetchBlockchainStats = async (): Promise<Partial<BlockchainStats>> 
         fgLabel = fgData.data[0].value_classification;
       }
     }
-  } catch (e) {
-    console.warn("Fear & Greed API fetch failed, using internal fallback.", e);
-  }
+  } catch (e) { console.warn("F&G stream unavailable, using fallback."); }
 
   try {
-    // Isolated try-catch for Gas API (often blocked by CORS)
-    const gasResponse = await fetch('https://ethgasstation.info/api/ethgasAPI.json');
-    if (gasResponse.ok) {
-      const gasData = await gasResponse.json();
-      if (gasData.average) {
-        gasPrice = Math.round(gasData.average / 10);
+    const globalResponse = await fetch('https://api.coingecko.com/api/v3/global');
+    if (globalResponse.ok) {
+      const gData = await globalResponse.json();
+      if (gData.data) {
+        totalCap = gData.data.total_market_cap.usd / 1e12;
+        globalVol = gData.data.total_volume.usd / 1e9;
+        btcDom = gData.data.market_cap_percentage.btc;
       }
     }
-  } catch (e) {
-    console.warn("Gas API fetch failed (likely CORS), using baseline estimate.", e);
+  } catch (e) { console.warn("CoinGecko Global stream unavailable, using fallback."); }
+
+  if (fgLabel === 'Neutral') {
+      if (fgValue > 75) fgLabel = 'Extreme Greed';
+      else if (fgValue > 55) fgLabel = 'Greed';
+      else if (fgValue < 25) fgLabel = 'Extreme Fear';
+      else if (fgValue < 45) fgLabel = 'Fear';
   }
-  
-  // Use a slow time factor to create smooth wave-like noise rather than jittery random jumps
-  const timeFactor = Date.now() / 8000;
-  const capNoise = Math.sin(timeFactor) * 0.015 + Math.cos(timeFactor * 2.5) * 0.005;
-  const volNoise = Math.cos(timeFactor * 1.5) * 2;
-  const domNoise = Math.sin(timeFactor * 0.3) * 0.15;
-  const gasNoise = Math.floor(Math.sin(timeFactor * 3.5) * 2);
 
   return { 
-    ethGasPrice: Math.max(5, (gasPrice || 15) + gasNoise), 
-    totalMarketCap: 2.84 + capNoise, 
-    activeAddresses: 1250000 + Math.floor(Math.random() * 50000),
-    btcDominance: 58.4 + domNoise,
-    globalVolume: 85 + volNoise,
-    fearGreed: { 
-      value: fgValue, 
-      label: fgLabel 
-    } 
+    ethGasPrice: gasPrice, 
+    totalMarketCap: totalCap, 
+    activeAddresses: 1280000 + Math.floor(Math.random() * 60000),
+    btcDominance: btcDom,
+    globalVolume: globalVol,
+    fearGreed: { value: fgValue, label: fgLabel } 
   };
 };

@@ -4,7 +4,7 @@ import { OnChainMetrics, WhaleTransaction } from '../types';
 import { 
   ShieldAlert, ArrowUpRight, ArrowDownLeft, Database, Activity, 
   HardDrive, Link, ExternalLink, Box, Radio, Zap, 
-  Layers, Search, Cpu, Anchor, Share2, Wallet
+  Layers, Search, Cpu, Anchor, Share2, Wallet, Clock, RefreshCw
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 
@@ -15,9 +15,26 @@ interface OnChainIntelProps {
   t: any;
 }
 
-const ENTITIES = {
-  EXCHANGE: ['Binance Hot Wallet', 'Coinbase Prime', 'OKX Reserve', 'Bybit Cold Storage'],
-  WHALE: ['Unknown Whale 0x3a...', 'Jump Trading', 'Wintermute', 'Smart Money 0x7f...'],
+const LiveClock = () => {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="flex flex-col items-end border-l border-white/5 pl-4 md:pl-6 h-full justify-center min-w-[100px] md:min-w-[120px]">
+      <div className="flex items-center gap-2 text-white">
+        <Clock size={12} className="text-indigo-400" />
+        <span className="text-xs md:text-sm font-mono font-black tracking-tight leading-none">
+          {time.toLocaleTimeString('en-US', { hour12: false })}
+        </span>
+        <span className="hidden md:inline-block text-[10px] font-bold text-slate-500 bg-white/5 px-1.5 rounded">UTC</span>
+      </div>
+      <span className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mt-1">
+        {time.toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short' })}
+      </span>
+    </div>
+  );
 };
 
 const FlowParticle: React.FC<{ delay: number; direction: 'in' | 'out'; speed: number; intensity: number }> = ({ delay, direction, speed, intensity }) => {
@@ -63,12 +80,8 @@ const OnChainIntel: React.FC<OnChainIntelProps> = ({ metrics, symbol, isLoading,
 
   if (isLoading || !metrics) {
     return (
-      <div className="bg-slate-950/40 rounded-[4rem] p-12 animate-pulse space-y-8 min-h-[500px] border border-white/5">
-        <div className="h-10 w-48 bg-slate-800 rounded-2xl" />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="h-80 bg-slate-800 rounded-[3rem]" />
-          <div className="h-80 bg-slate-800 rounded-[3rem]" />
-        </div>
+      <div className="bg-slate-950/40 rounded-[3rem] p-12 animate-pulse flex items-center justify-center min-h-[500px] border border-white/5">
+        <RefreshCw className="w-16 h-16 text-indigo-500 animate-spin" />
       </div>
     );
   }
@@ -81,24 +94,25 @@ const OnChainIntel: React.FC<OnChainIntelProps> = ({ metrics, symbol, isLoading,
 
   const isInflow = metrics.netFlow > 0;
   const netFlowColor = isInflow ? 'text-rose-400' : 'text-emerald-400';
-  const particleCount = Math.floor(15 + fluxIntensity * 5); // Increased density
-  const flowSpeed = Math.max(0.3, 2.0 - (fluxIntensity / 5)); // Increased dynamic speed
+  const particleCount = Math.floor(15 + fluxIntensity * 5);
+  const flowSpeed = Math.max(0.3, 2.0 - (fluxIntensity / 5));
 
   return (
-    <div className="cyber-card rounded-[4rem] p-12 border border-white/5 relative overflow-hidden group">
+    <div className="cyber-card rounded-[3rem] p-8 md:p-10 border border-white/5 relative overflow-hidden group bg-[#020617]">
       <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none group-hover:rotate-6 transition-transform">
         <Database className="w-64 h-64 text-indigo-400" />
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 relative z-10">
+      {/* --- HEADER --- */}
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 gap-8 relative z-10 border-b border-white/5 pb-8">
         <div className="flex items-center gap-6">
-          <div className="p-5 bg-indigo-500/10 rounded-3xl border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.15)] relative">
+          <div className="p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.15)] relative">
             <Link className="w-8 h-8 text-indigo-400 relative z-10" />
             <div className="absolute inset-0 bg-indigo-500/20 blur-xl animate-pulse"></div>
           </div>
           <div>
             <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic leading-none">{t.onChainIntel}</h3>
-            <div className="flex items-center gap-3 mt-3">
+            <div className="flex items-center gap-3 mt-2">
                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">{t.networkMainnet}: {symbol}</span>
                <div className="h-px w-6 bg-slate-700"></div>
                <span className="text-[10px] font-mono font-bold text-emerald-400 flex items-center gap-2">
@@ -108,40 +122,54 @@ const OnChainIntel: React.FC<OnChainIntelProps> = ({ metrics, symbol, isLoading,
             </div>
           </div>
         </div>
+        <LiveClock />
+      </div>
 
-        <div className="flex gap-4">
-          <div className="bg-slate-900/50 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 flex flex-col items-end group/stat transition-all hover:border-accent/50">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover/stat:text-accent">Active Addresses</span>
-            <span className="text-sm font-black text-white font-mono">{liveAddresses.toLocaleString()}</span>
-          </div>
-          <div className="bg-slate-900/50 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 flex flex-col items-end group/stat transition-all hover:border-indigo-500/50">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover/stat:text-indigo-400">Mempool Backlog</span>
-            <span className="text-sm font-black text-white font-mono">{liveMempool.toLocaleString()}</span>
-          </div>
-        </div>
+      {/* --- STATS ROW --- */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 relative z-10">
+         <div className="bg-slate-900/40 p-4 rounded-2xl border border-white/5 flex flex-col items-center justify-center">
+            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Active Addresses</span>
+            <span className="text-lg font-black font-mono text-white">{liveAddresses.toLocaleString()}</span>
+         </div>
+         <div className="bg-slate-900/40 p-4 rounded-2xl border border-white/5 flex flex-col items-center justify-center">
+            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Mempool</span>
+            <span className="text-lg font-black font-mono text-white">{liveMempool.toLocaleString()} <span className="text-[8px] text-slate-600">TXS</span></span>
+         </div>
+         <div className="bg-slate-900/40 p-4 rounded-2xl border border-white/5 flex flex-col items-center justify-center">
+            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Coin Days Destroyed</span>
+            <span className="text-lg font-black font-mono text-amber-400">{formatUsd(metrics.coinDaysDestroyed)}</span>
+         </div>
+         <div className="bg-slate-900/40 p-4 rounded-2xl border border-white/5 flex flex-col items-center justify-center">
+            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Dormancy Flow</span>
+            <span className="text-lg font-black font-mono text-white">{metrics.dormancy.toFixed(2)}</span>
+         </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 relative z-10">
-        <div className="xl:col-span-7 bg-slate-950/40 border border-white/5 rounded-[3.5rem] p-10 relative overflow-hidden shadow-2xl flex flex-col">
-          <div className="flex items-center justify-between mb-8">
-            <h4 className="text-[13px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
-              <HardDrive className="w-5 h-5 text-indigo-400" /> Netflow Velocity
+        
+        {/* NETFLOW VISUALIZER */}
+        <div className="xl:col-span-7 bg-slate-950/40 border border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[350px]">
+          <div className="flex items-center justify-between mb-8 relative z-10">
+            <h4 className="text-[11px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
+              <HardDrive className="w-4 h-4 text-indigo-400" /> Netflow Velocity
             </h4>
-            <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border backdrop-blur-md ${isInflow ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'}`}>
-              {isInflow ? 'Sell Pressure High' : 'Accumulation Signal'}
+            <div className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border backdrop-blur-md ${isInflow ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'}`}>
+              {isInflow ? 'High Sell Pressure' : 'Accumulation'}
             </div>
           </div>
 
-          <div className="flex-1 flex items-center justify-between relative bg-black/40 rounded-[2.5rem] border border-white/5 p-6 mb-8 min-h-[220px]">
-             <div className="flex flex-col items-center gap-4 z-10 group/node">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center transition-all duration-500 group-hover/node:scale-110 group-hover/node:shadow-[0_0_30px_rgba(99,102,241,0.5)] group-hover/node:border-indigo-400">
-                   <Wallet className="w-8 h-8 text-indigo-400" />
+          <div className="flex-1 flex items-center justify-between relative bg-black/40 rounded-[2rem] border border-white/5 p-6">
+             {/* Wallet Node */}
+             <div className="flex flex-col items-center gap-3 z-10 group/node">
+                <div className="w-14 h-14 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center transition-all duration-500 group-hover/node:scale-110 group-hover/node:shadow-[0_0_20px_rgba(99,102,241,0.5)] group-hover/node:border-indigo-400">
+                   <Wallet className="w-6 h-6 text-indigo-400" />
                 </div>
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover/node:text-indigo-300">Wallets</span>
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover/node:text-indigo-300">Wallets</span>
              </div>
 
-             <div className="flex-1 h-20 mx-4 relative bg-slate-900/60 rounded-full border border-white/5 overflow-hidden flex items-center">
-                <div className={`absolute inset-0 opacity-20 transition-colors duration-1000 ${isInflow ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
+             {/* Flow Reactor */}
+             <div className="flex-1 h-16 mx-4 relative bg-slate-900/60 rounded-full border border-white/5 overflow-hidden flex items-center shadow-inner">
+                <div className={`absolute inset-0 opacity-10 transition-colors duration-1000 ${isInflow ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
                 {Array.from({length: particleCount}).map((_, i) => (
                    <FlowParticle 
                       key={i} 
@@ -151,65 +179,73 @@ const OnChainIntel: React.FC<OnChainIntelProps> = ({ metrics, symbol, isLoading,
                       intensity={fluxIntensity}
                    />
                 ))}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-950/95 px-6 py-2 rounded-full border border-white/10 z-20 shadow-[0_0_30px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-                   <span className={`text-[13px] font-black font-mono transition-all duration-300 ${netFlowColor} drop-shadow-[0_0_8px_currentColor]`}>
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-950/90 px-4 py-1.5 rounded-full border border-white/10 z-20 shadow-xl backdrop-blur-md">
+                   <span className={`text-[11px] font-black font-mono transition-all duration-300 ${netFlowColor} drop-shadow-[0_0_5px_currentColor]`}>
                       {formatUsd(Math.abs(metrics.netFlow))}
                    </span>
                 </div>
              </div>
 
-             <div className="flex flex-col items-center gap-4 z-10 group/node">
-                <div className={`w-16 h-16 rounded-2xl border flex items-center justify-center transition-all duration-500 group-hover/node:scale-110 ${isInflow ? 'bg-rose-500/10 border-rose-500/20 group-hover/node:shadow-[0_0_30px_rgba(244,63,94,0.5)] group-hover/node:border-rose-400' : 'bg-emerald-500/10 border-emerald-500/20 group-hover/node:shadow-[0_0_30px_rgba(16,185,129,0.5)] group-hover/node:border-emerald-400'}`}>
-                   <BuildingIcon className={`w-8 h-8 ${isInflow ? 'text-rose-400' : 'text-emerald-400'}`} />
+             {/* Exchange Node */}
+             <div className="flex flex-col items-center gap-3 z-10 group/node">
+                <div className={`w-14 h-14 rounded-xl border flex items-center justify-center transition-all duration-500 group-hover/node:scale-110 ${isInflow ? 'bg-rose-500/10 border-rose-500/20 group-hover/node:shadow-[0_0_20px_rgba(244,63,94,0.5)] group-hover/node:border-rose-400' : 'bg-emerald-500/10 border-emerald-500/20 group-hover/node:shadow-[0_0_20px_rgba(16,185,129,0.5)] group-hover/node:border-emerald-400'}`}>
+                   <BuildingIcon className={`w-6 h-6 ${isInflow ? 'text-rose-400' : 'text-emerald-400'}`} />
                 </div>
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Exchanges</span>
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Exchanges</span>
              </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-             <div className="bg-slate-900/40 p-5 rounded-2xl border border-white/5 group/box hover:bg-white/5 transition-all">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-2 group-hover/box:text-rose-400">Total Inflow</span>
-                <span className="text-xl font-black text-rose-400 font-mono tracking-tighter">{formatUsd(metrics.exchangeInflow)}</span>
+          <div className="grid grid-cols-2 gap-4 mt-6">
+             <div className="bg-slate-900/40 p-4 rounded-xl border border-white/5 group/box hover:bg-white/5 transition-all">
+                <div className="flex justify-between items-center mb-1">
+                   <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest group-hover/box:text-rose-400">Inflow</span>
+                   <ArrowDownLeft className="w-3 h-3 text-rose-500" />
+                </div>
+                <span className="text-lg font-black text-rose-400 font-mono tracking-tighter">{formatUsd(metrics.exchangeInflow)}</span>
              </div>
-             <div className="bg-slate-900/40 p-5 rounded-2xl border border-white/5 group/box hover:bg-white/5 transition-all">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-2 group-hover/box:text-emerald-400">Total Outflow</span>
-                <span className="text-xl font-black text-emerald-400 font-mono tracking-tighter">{formatUsd(metrics.exchangeOutflow)}</span>
+             <div className="bg-slate-900/40 p-4 rounded-xl border border-white/5 group/box hover:bg-white/5 transition-all">
+                <div className="flex justify-between items-center mb-1">
+                   <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest group-hover/box:text-emerald-400">Outflow</span>
+                   <ArrowUpRight className="w-3 h-3 text-emerald-500" />
+                </div>
+                <span className="text-lg font-black text-emerald-400 font-mono tracking-tighter">{formatUsd(metrics.exchangeOutflow)}</span>
              </div>
           </div>
         </div>
 
-        <div className="xl:col-span-5 bg-slate-950/40 border border-white/5 rounded-[3.5rem] p-10 relative overflow-hidden shadow-2xl flex flex-col">
-          <div className="flex items-center justify-between mb-8">
-            <h4 className="text-[13px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
-              <ShieldAlert className="w-5 h-5 text-indigo-400" /> Global Whale Tape
+        {/* WHALE TAPE */}
+        <div className="xl:col-span-5 bg-slate-950/40 border border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl flex flex-col h-[350px]">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
+            <h4 className="text-[11px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-indigo-400" /> Global Whale Tape
             </h4>
-            <Radio className="w-4 h-4 text-emerald-500 animate-pulse" />
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_#10b981]"></div>
           </div>
 
-          <div className="flex-1 space-y-3 overflow-y-auto custom-scrollbar pr-2 max-h-[400px]">
+          <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
             {liveTx.map((tx) => {
                const isMegalodon = tx.amountUsd > 1000000;
                return (
-                  <div key={tx.id} className={`p-4 rounded-3xl border transition-all animate-[slideIn_0.3s_ease-out] group/tx ${isMegalodon ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/50 shadow-[inset_0_0_20px_rgba(245,158,11,0.05)]' : 'bg-slate-900/40 border-white/5 hover:border-white/20'}`}>
-                    <div className="flex justify-between items-start mb-3">
+                  <div key={tx.id} className={`p-3 rounded-2xl border transition-all animate-[slideIn_0.3s_ease-out] group/tx ${isMegalodon ? 'bg-amber-500/10 border-amber-500/30 hover:border-amber-500/50 shadow-[inset_0_0_20px_rgba(245,158,11,0.05)]' : 'bg-slate-900/40 border-white/5 hover:border-white/20'}`}>
+                    <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-black font-mono text-slate-500">{tx.timestamp}</span>
-                        {isMegalodon && <span className="text-[8px] font-black bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded uppercase animate-pulse border border-amber-500/20">MEGALODON</span>}
+                        <span className="text-[8px] font-black font-mono text-slate-500">{tx.timestamp}</span>
+                        {isMegalodon && <span className="text-[7px] font-black bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded uppercase animate-pulse border border-amber-500/20">MEGALODON</span>}
                       </div>
-                      <ExternalLink className="w-4 h-4 text-slate-700 group-hover/tx:text-indigo-400 transition-colors" />
+                      <ExternalLink className="w-3 h-3 text-slate-700 group-hover/tx:text-indigo-400 transition-colors" />
                     </div>
                     
-                    <div className="flex items-center justify-between mb-3">
-                       <div className="flex items-center gap-2 text-[11px] font-bold text-white">
+                    <div className="flex items-center justify-between mb-2">
+                       <div className="flex items-center gap-2 text-[9px] font-bold text-white">
                           <span className={tx.from === 'EXCHANGE' ? 'text-rose-400' : 'text-emerald-400'}>{tx.fromLabel}</span>
-                          <div className="h-px w-4 bg-slate-800"></div>
+                          <div className="h-px w-3 bg-slate-700"></div>
                           <span className={tx.to === 'EXCHANGE' ? 'text-rose-400' : 'text-emerald-400'}>{tx.toLabel}</span>
                        </div>
                     </div>
 
-                    <div className="flex justify-between items-end bg-black/20 p-3 rounded-2xl border border-white/5">
-                       <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Movement Value</span>
-                       <span className={`text-lg font-black font-mono tracking-tighter ${isMegalodon ? 'text-amber-400 drop-shadow-[0_0_10px_#f59e0b]' : 'text-white'}`}>
+                    <div className="flex justify-between items-end bg-black/20 p-2 rounded-xl border border-white/5">
+                       <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Value</span>
+                       <span className={`text-sm font-black font-mono tracking-tighter ${isMegalodon ? 'text-amber-400 drop-shadow-[0_0_5px_#f59e0b]' : 'text-white'}`}>
                           ${(tx.amountUsd).toLocaleString()}
                        </span>
                     </div>

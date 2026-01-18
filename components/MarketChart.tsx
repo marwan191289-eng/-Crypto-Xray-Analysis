@@ -1,12 +1,6 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, memo } from 'react';
 import { MarketData, AIAnalysis } from '../types';
-
-interface MarketChartProps {
-  data: MarketData;
-  analysis?: AIAnalysis;
-  t: any;
-}
 
 declare global {
   interface Window {
@@ -14,74 +8,99 @@ declare global {
   }
 }
 
-const MarketChart: React.FC<MarketChartProps> = ({ data, t }) => {
-  const containerId = `tv-chart-${data.symbol}`;
-  const scriptLoaded = useRef(false);
+interface MarketChartProps {
+  data: MarketData;
+  analysis?: AIAnalysis;
+  t: any;
+  timeframe: string;
+  onTimeframeChange: (tf: string) => void;
+}
+
+const MarketChart: React.FC<MarketChartProps> = memo(({ data, timeframe }) => {
+  const containerId = useRef(`tv_chart_container_${Math.random().toString(36).substring(7)}`);
 
   useEffect(() => {
-    const loadChart = () => {
+    // Map internal timeframe to TradingView interval codes
+    const mapTimeframe = (tf: string): string => {
+        const map: Record<string, string> = {
+            '1H': '60',
+            '4H': '240',
+            '12H': '720',
+            '1D': 'D',
+            '3D': '3D',
+            '1W': 'W',
+            '1M': 'M'
+        };
+        return map[tf] || '60';
+    };
+
+    const interval = mapTimeframe(timeframe);
+    // Default to Binance for reliable crypto data coverage
+    const symbol = `BINANCE:${data.symbol}USDT`;
+
+    const initWidget = () => {
       if (window.TradingView) {
         new window.TradingView.widget({
           "autosize": true,
-          "symbol": `BINANCE:${data.symbol}USDT`,
-          "interval": "60",
+          "symbol": symbol,
+          "interval": interval,
           "timezone": "Etc/UTC",
           "theme": "dark",
-          "style": "1",
+          "style": "1", // 1 = Candles
           "locale": "en",
-          "toolbar_bg": "#010204",
           "enable_publishing": false,
-          "hide_top_toolbar": false,
-          "hide_legend": false,
-          "save_image": false,
-          "container_id": containerId,
-          "backgroundColor": "#010204",
-          "gridLineColor": "rgba(255, 255, 255, 0.04)",
+          "backgroundColor": "rgba(2, 6, 23, 1)", // Matches app bg #020617
+          "gridColor": "rgba(30, 41, 59, 0.2)",
+          "allow_symbol_change": false, // Disable to keep app state in sync
+          "container_id": containerId.current,
+          "hide_side_toolbar": false,
           "studies": [
             "RSI@tv-basicstudies",
             "MASimple@tv-basicstudies",
-            "BollingerBands@tv-basicstudies"
-          ]
+            "MACD@tv-basicstudies"
+          ],
+          "toolbar_bg": "#020617",
+          "withdateranges": true,
+          "hide_volume": false,
+          "details": true,
+          "hotlist": true,
+          "calendar": true,
+          // Advanced features
+          "show_popup_button": true,
+          "popup_width": "1000",
+          "popup_height": "650",
         });
       }
     };
 
-    if (!scriptLoaded.current) {
-      const script = document.createElement('script');
-      script.src = 'https://s3.tradingview.com/tv.js';
-      script.async = true;
-      script.onload = loadChart;
-      document.head.appendChild(script);
-      scriptLoaded.current = true;
+    // Lazy load the script if not present, otherwise init directly
+    if (!window.TradingView) {
+        const script = document.createElement('script');
+        script.id = 'tradingview-widget-loading-script';
+        script.src = 'https://s3.tradingview.com/tv.js';
+        script.type = 'text/javascript';
+        script.async = true;
+        script.onload = initWidget;
+        document.head.appendChild(script);
     } else {
-      loadChart();
+        initWidget();
     }
-  }, [data.symbol]);
+  }, [data.symbol, timeframe]);
 
   return (
-    <div className="w-full h-[600px] md:h-[800px] relative rounded-[2rem] md:rounded-[4rem] overflow-hidden border border-white/5 shadow-2xl bg-[#010204] group">
-      {/* Forensic HUD Overlay */}
-      <div className="absolute top-6 left-10 z-20 flex items-center gap-6 pointer-events-none">
-        <div className="flex flex-col">
-          <span className="text-[10px] font-black text-accent uppercase tracking-[0.3em] mb-1">TradingView Core</span>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_#00e5ff]"></div>
-            <span className="text-xl font-black font-mono text-white tracking-tighter">SUPERCHARTS v8.4</span>
-          </div>
-        </div>
-        <div className="h-8 w-px bg-white/10"></div>
-        <div className="flex flex-col">
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Asset Stream</span>
-          <span className="text-lg font-black text-white italic">{data.symbol}/USDT</span>
-        </div>
-      </div>
-
-      <div id={containerId} className="w-full h-full" />
+    <div className="w-full h-[750px] relative rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl bg-[#020617] group/chart">
+      {/* Decorative Border Glow */}
+      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-50 z-10"></div>
       
-      {/* X-Ray Scan Beam */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-accent/40 shadow-[0_0_20px_#00e5ff] animate-[move-beam_5s_linear_infinite] pointer-events-none z-30"></div>
+      {/* Chart Container */}
+      <div id={containerId.current} className="w-full h-full" />
+      
+      {/* Loading Overlay (Visible briefly while widget loads) */}
+      <div className="absolute inset-0 bg-[#020617] flex items-center justify-center -z-10">
+         <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest animate-pulse">Initializing Advanced Chart...</span>
+      </div>
     </div>
   );
-};
+});
 
 export default MarketChart;
